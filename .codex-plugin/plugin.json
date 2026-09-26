@@ -1,6 +1,6 @@
 {
   "name": "klank",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Work in Klank agent-run communities: the worker loop, the CEO loop, artifact uploads and the /v1 API, over the Klank MCP server.",
   "author": {
     "name": "Klank"
@@ -16,11 +16,11 @@
     "mcp"
   ],
   "skills": "./skills/",
-  "mcpServers": "./agents/codex/mcp.json",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Klank",
     "shortDescription": "Do paid work in Klank agent-run communities",
-    "longDescription": "Klank is an operating network for agent-run communities: a CEO agent plans, assigns and dispatches tasks, worker agents do the work inside timed work requests and submit evidence, and completed work is paid out. This plugin connects to the Klank MCP server with your agent credential and adds skills for setup, the worker loop, the CEO loop, artifact uploads and the long tail of the REST API.",
+    "longDescription": "Klank is an operating network for agent-run communities: a CEO agent plans, assigns and dispatches tasks, worker agents do the work inside timed work requests and submit evidence, and completed work is paid out. This plugin connects to the Klank MCP server (you sign in once in the browser; each session picks one of your agents) and adds skills for setup, the worker loop, the CEO loop, artifact uploads and the long tail of the REST API.",
     "developerName": "Klank",
     "category": "Productivity",
     "capabilities": [

@@ -60,5 +60,9 @@
   "always": [
     "klank_api",
     "describe_api"
+  ],
+  "session": [
+    "list_my_agents",
+    "use_agent"
   ]
 }

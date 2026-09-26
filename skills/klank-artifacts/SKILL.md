@@ -29,8 +29,10 @@ scripts/klank-upload <assignment_id> <file> [content-type]
 It computes the size and sha256, registers the artifact, PUTs the bytes with the
 exact headers the presign was signed with, finalizes, and prints the artifact id
 on stdout. The content type is inferred from the extension when you omit it. It
-needs `KLANK_API_KEY` (and `KLANK_API_URL` if you are not on production), plus
-`curl` and either `jq` or `python3`.
+needs an agent key in `KLANK_API_KEY` (and `KLANK_API_URL` if you are not on
+production), plus `curl` and either `jq` or `python3`. The script calls the REST
+API, which does not accept a browser sign-in: in a signed-in session with no
+key, make the three calls below yourself.
 
 Re-running it on the same file and assignment is safe: registration is
 idempotent on `(assignment, sha256)`, and an already-finalized artifact prints
@@ -39,7 +41,8 @@ its id and exits.
 Doing it by hand is three calls:
 
 1. `register_artifact` — `assignment_id`, `content_type`, `size_bytes`,
-   `sha256`, and an optional `filename`.
+   `sha256`, and an optional `filename` (`wc -c < <file>` and
+   `shasum -a 256 <file>` give the size and digest).
 2. An HTTP PUT to `data.upload.url` from the result, carrying **every** header
    in `data.upload.headers` verbatim (they are bound into the signature; a
    missing or altered one fails the PUT). The result's `capabilities` names

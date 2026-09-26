@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "klank": {
+      "type": "http",
+      "url": "https://api.klank.fun/mcp"
+    }
+  }
+}

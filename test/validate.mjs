@@ -4,9 +4,11 @@
 //
 // What it proves:
 //   1. every JSON file in the repository parses
-//   2. no root Agent Plugins manifest (it switches Codex, Copilot and VS Code
-//      into a strict mode that drops the authenticated MCP server)
-//   3. each vendor manifest declares the credential the way that vendor spells it
+//   2. no root Agent Plugins manifest (Codex would take its version and MCP
+//      servers from it instead of .codex-plugin)
+//   3. every MCP server the package declares is the literal production URL (no
+//      headers, no variables, no key: clients sign in through the browser), and
+//      the vendor manifests carry their listings and paths but no credential
 //   4. every skill's frontmatter is a valid Agent Skills header
 //   5. no credential material is checked in
 //   6. every tool name a skill mentions is a real, frozen Klank tool
@@ -75,46 +77,60 @@ const requireFile = (name) => {
 // ---------------------------------------------------------------------------
 // 2. no root Agent Plugins manifest
 // ---------------------------------------------------------------------------
-// A root plugin.json (or mcp.json) puts Codex, Copilot CLI and VS Code into
-// Agent Plugins mode, which forbids variables in MCP urls and headers. Those
-// clients then load the skills and silently drop the Klank MCP server: an
-// agent with no tools. Each client reads its own manifest directory instead.
-for (const name of ["plugin.json", "mcp.json", ".mcp.json"]) {
+// Codex 0.153.4 takes the version and MCP servers from a root plugin.json +
+// mcp.json (Agent Plugins) instead of .codex-plugin/plugin.json, so a root
+// manifest silently overrides the Codex one. Every client this plugin targets
+// reads its own manifest, so the root serves none of them.
+for (const name of ["plugin.json", "mcp.json"]) {
   if (files.some((f) => rel(f) === name)) {
-    fail(name, "must not exist at the root: it would replace every client's authenticated MCP server");
+    fail(name, "must not exist at the root: Codex would load it over .codex-plugin/plugin.json");
   }
 }
 
-// ---------------------------------------------------------------------------
-// 3. per-vendor credential declarations
-// ---------------------------------------------------------------------------
-const claude = requireFile(".claude-plugin/plugin.json");
-if (claude) {
-  const where = ".claude-plugin/plugin.json";
-  if (claude.name !== "klank") fail(where, `"name" must be "klank"`);
-  const key = claude.userConfig?.klank_api_key;
-  if (!key) fail(where, "userConfig.klank_api_key is missing");
-  else {
-    if (key.sensitive !== true) fail(where, "userConfig.klank_api_key.sensitive must be true");
-    if (key.required !== true) fail(where, "userConfig.klank_api_key.required must be true");
-    if (key.type !== "string") fail(where, "userConfig.klank_api_key.type must be \"string\"");
+// Every MCP server the package declares, wherever it is declared, must be the
+// production URL and nothing else: no headers, no env var, no key reference.
+function checkServers(where, servers, type) {
+  if (!servers || typeof servers !== "object" || Array.isArray(servers)) {
+    fail(where, "mcpServers must be an object");
+    return;
   }
-  if (!claude.userConfig?.klank_mcp_url) fail(where, "userConfig.klank_mcp_url is missing");
-  const server = claude.mcpServers?.klank;
-  if (typeof claude.mcpServers === "string") {
-    fail(where, "mcpServers must be inline, not a path");
-  } else if (!server) {
-    fail(where, "mcpServers.klank is missing");
-  } else {
-    if (server.type !== "http") fail(where, 'mcpServers.klank.type must be "http"');
-    const auth = server.headers?.Authorization;
-    if (typeof auth !== "string" || !auth.includes("${user_config.klank_api_key}")) {
-      fail(where, "mcpServers.klank.headers.Authorization must reference ${user_config.klank_api_key}");
-    }
-    if (typeof server.url !== "string" || !server.url.includes("${user_config.klank_mcp_url}")) {
-      fail(where, "mcpServers.klank.url must reference ${user_config.klank_mcp_url}");
-    }
+  const names = Object.keys(servers);
+  if (names.length !== 1 || names[0] !== "klank") fail(where, 'mcpServers must hold exactly one server, "klank"');
+  const server = servers.klank;
+  if (!server) return;
+  const keys = Object.keys(server).sort().join(",");
+  if (keys !== "type,url") fail(where, `mcpServers.klank must hold only "type" and "url" (found ${keys})`);
+  if (server.type !== type) fail(where, `mcpServers.klank.type must be "${type}"`);
+  if (server.url !== PRODUCTION_MCP) fail(where, `mcpServers.klank.url must be the literal ${PRODUCTION_MCP}`);
+}
+
+// Every vendor manifest uses .mcp.json, with the transport spelled "http".
+const dotMcp = requireFile(".mcp.json");
+if (dotMcp) {
+  const extra = Object.keys(dotMcp).filter((key) => key !== "mcpServers");
+  if (extra.length) fail(".mcp.json", `only "mcpServers" is allowed (found ${extra.join(", ")})`);
+  checkServers(".mcp.json", dotMcp.mcpServers, "http");
+}
+
+// ---------------------------------------------------------------------------
+// 3. vendor manifests: listings and paths, no credential wiring
+// ---------------------------------------------------------------------------
+const VENDOR_MANIFESTS = [".claude-plugin/plugin.json", ".codex-plugin/plugin.json", ".cursor-plugin/plugin.json", ".plugin/plugin.json"];
+for (const where of VENDOR_MANIFESTS) {
+  const manifest = requireFile(where);
+  if (!manifest) continue;
+  if (manifest.name !== "klank") fail(where, `"name" must be "klank"`);
+  // Claude Code's userConfig and Cursor's variables existed only to carry a key.
+  for (const key of ["userConfig", "variables"]) {
+    if (manifest[key] !== undefined) fail(where, `"${key}" must not exist: the plugin carries no credential`);
   }
+  const mcp = manifest.mcpServers;
+  if (typeof mcp === "object" && mcp !== null) checkServers(where, mcp, "http");
+  else if (mcp !== undefined && mcp !== "./.mcp.json") fail(where, 'mcpServers must be "./.mcp.json" when set');
+}
+// Codex and Copilot name their MCP file; Claude Code and Cursor find .mcp.json.
+for (const where of [".codex-plugin/plugin.json", ".plugin/plugin.json"]) {
+  if (parsed.get(where) && parsed.get(where).mcpServers !== "./.mcp.json") fail(where, 'mcpServers must be "./.mcp.json"');
 }
 
 const marketplace = requireFile(".claude-plugin/marketplace.json");
@@ -127,47 +143,10 @@ if (marketplace) {
   else if (!entry.name || !entry.source) fail(where, "plugins[0] needs name and source");
 }
 
-const cursorManifest = requireFile(".cursor-plugin/plugin.json");
-if (cursorManifest) {
-  const where = ".cursor-plugin/plugin.json";
-  if (cursorManifest.name !== "klank") fail(where, `"name" must be "klank"`);
-  const vars = cursorManifest.variables;
-  if (vars?.type !== "object" || !vars.properties) fail(where, "variables must be an object schema");
-  else {
-    if (!vars.properties.KLANK_API_KEY) fail(where, "variables.properties.KLANK_API_KEY is missing");
-    if (!vars.properties.KLANK_MCP_URL) fail(where, "variables.properties.KLANK_MCP_URL is missing");
-    if (!(vars.required ?? []).includes("KLANK_API_KEY")) {
-      fail(where, "variables.required must include KLANK_API_KEY");
-    }
-  }
-  if (cursorManifest.mcpServers !== "./agents/cursor/mcp.json") {
-    fail(where, 'mcpServers must be "./agents/cursor/mcp.json"');
-  }
-}
-
-const cursorMcp = requireFile("agents/cursor/mcp.json");
-if (cursorMcp) {
-  const where = "agents/cursor/mcp.json";
-  const server = cursorMcp.mcpServers?.klank;
-  if (!server) fail(where, "mcpServers.klank is missing");
-  else {
-    // Without the default, a user who sets only the key gets no server at all.
-    if (server.url !== `\${KLANK_MCP_URL:-${PRODUCTION_MCP}}`) {
-      fail(where, `mcpServers.klank.url must be "\${KLANK_MCP_URL:-${PRODUCTION_MCP}}"`);
-    }
-    const auth = server.headers?.Authorization;
-    if (typeof auth !== "string" || !auth.includes("${KLANK_API_KEY}")) {
-      fail(where, "mcpServers.klank.headers.Authorization must reference ${KLANK_API_KEY}");
-    }
-  }
-}
-
-const codex = requireFile(".codex-plugin/plugin.json");
+const codex = parsed.get(".codex-plugin/plugin.json");
 if (codex) {
   const where = ".codex-plugin/plugin.json";
-  if (codex.name !== "klank") fail(where, `"name" must be "klank"`);
   if (codex.skills !== "./skills/") fail(where, 'skills must be "./skills/"');
-  if (codex.mcpServers !== "./agents/codex/mcp.json") fail(where, 'mcpServers must be "./agents/codex/mcp.json"');
   const iface = codex.interface;
   if (!iface) fail(where, "interface is missing");
   else {
@@ -186,52 +165,15 @@ if (codex) {
   }
 }
 
-const codexMcp = requireFile("agents/codex/mcp.json");
-if (codexMcp) {
-  const where = "agents/codex/mcp.json";
-  const server = codexMcp.mcpServers?.klank;
-  if (!server) fail(where, "mcpServers.klank is missing");
-  else {
-    if (server.type !== "http") fail(where, 'mcpServers.klank.type must be "http"');
-    if (server.bearer_token_env_var !== "KLANK_API_KEY") {
-      fail(where, 'mcpServers.klank.bearer_token_env_var must be "KLANK_API_KEY"');
-    }
-    if (server.headers) fail(where, "Codex reads no headers object; use bearer_token_env_var only");
-    if (server.url !== PRODUCTION_MCP) fail(where, `mcpServers.klank.url must be ${PRODUCTION_MCP}`);
-  }
-}
-
-const copilot = requireFile(".plugin/plugin.json");
+const copilot = parsed.get(".plugin/plugin.json");
 if (copilot) {
-  const where = ".plugin/plugin.json";
-  if (copilot.name !== "klank") fail(where, `"name" must be "klank"`);
-  if (copilot.skills !== "skills/") fail(where, 'skills must be "skills/"');
-  if (copilot.commands !== "commands/") fail(where, 'commands must be "commands/"');
-  if (copilot.mcpServers !== "./agents/copilot/mcp.json") {
-    fail(where, 'mcpServers must be "./agents/copilot/mcp.json"');
-  }
-}
-const copilotMcp = requireFile("agents/copilot/mcp.json");
-if (copilotMcp) {
-  const where = "agents/copilot/mcp.json";
-  const server = copilotMcp.mcpServers?.klank;
-  if (!server) fail(where, "mcpServers.klank is missing");
-  else {
-    if (server.type !== "http") fail(where, 'mcpServers.klank.type must be "http"');
-    if (server.url !== PRODUCTION_MCP) fail(where, `mcpServers.klank.url must be ${PRODUCTION_MCP}`);
-    if (server.headers?.Authorization !== "Bearer ${KLANK_API_KEY}") {
-      fail(where, 'mcpServers.klank.headers.Authorization must be "Bearer ${KLANK_API_KEY}"');
-    }
-  }
+  if (copilot.skills !== "skills/") fail(".plugin/plugin.json", 'skills must be "skills/"');
+  if (copilot.commands !== "commands/") fail(".plugin/plugin.json", 'commands must be "commands/"');
 }
 
 // Every path a manifest points at must exist.
-for (const [manifest, keys] of [
-  [".codex-plugin/plugin.json", ["skills", "mcpServers"]],
-  [".cursor-plugin/plugin.json", ["mcpServers"]],
-  [".plugin/plugin.json", ["skills", "commands", "mcpServers"]],
-]) {
-  for (const key of keys) {
+for (const manifest of VENDOR_MANIFESTS) {
+  for (const key of ["skills", "commands", "mcpServers"]) {
     const target = parsed.get(manifest)?.[key];
     if (typeof target !== "string") continue;
     try {
@@ -251,8 +193,7 @@ if (codexMarketplace) {
 }
 
 const versions = new Map(
-  [".claude-plugin/plugin.json", ".codex-plugin/plugin.json", ".cursor-plugin/plugin.json", ".plugin/plugin.json", "package.json"]
-    .map((name) => [name, parsed.get(name)?.version]),
+  [...VENDOR_MANIFESTS, "package.json"].map((name) => [name, parsed.get(name)?.version]),
 );
 if (new Set(versions.values()).size !== 1) {
   fail("versions", `every manifest must carry the same version: ${JSON.stringify(Object.fromEntries(versions))}`);
@@ -341,7 +282,10 @@ for (const file of files) {
 // 6. tool names used in skills
 // ---------------------------------------------------------------------------
 const vendored = requireFile("test/tool-names.json");
-const TOOLS = vendored ? new Set([...vendored.worker, ...vendored.ceo, ...vendored.always]) : new Set();
+// `session` tools exist only on a signed-in (OAuth) connection.
+const TOOLS = vendored
+  ? new Set([...vendored.worker, ...vendored.ceo, ...vendored.always, ...vendored.session])
+  : new Set();
 
 // The core repo's frozen list, when this checkout sits beside it. Drift is an
 // error: the vendored copy is what CI validates against.
@@ -421,7 +365,7 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "artifact_invalid", "blocked", "ceo_binding_required", "human_request_open",
   "image_blocked", "invite_required", "moderation_unavailable",
   "idempotency_conflict", "internal_error", "not_found", "provider_unavailable",
-  "rate_limited", "relation_cycle", "request_already_active", "request_expired",
+  "rate_limited", "relation_cycle", "agent_not_selected", "request_already_active", "request_expired",
   "request_not_active", "revision_frozen", "scope_denied", "validation_failed",
   "version_conflict", "workspace_invalid",
   // enum and literal values

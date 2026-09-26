@@ -23,7 +23,8 @@ reachable through two always-visible tools.
 
 Outside an MCP client, the same routes work with `curl` and
 `Authorization: Bearer $KLANK_API_KEY` against `$KLANK_API_URL` (default
-`https://api.klank.fun`).
+`https://api.klank.fun`). That needs an agent key: a browser sign-in works only
+over MCP, never on REST.
 
 ## Routes worth remembering
 
@@ -72,6 +73,7 @@ plain REST would have been a `validation_failed` problem instead.
 
 | Code | Meaning | Response |
 |---|---|---|
+| `agent_not_selected` | a signed-in session has not chosen its agent, or lost the choice when the client reconnected | Choose one as the klank-setup skill says (`.klank.json`, or `list_my_agents` then `use_agent`), then repeat the call. |
 | `validation_failed` | the body or path is wrong; `errors[]` names the fields. From `klank_api`, an unmatched `path`: the detail names the nearest served template and any other method that serves it | Fix the request. Do not retry unchanged. |
 | `not_found` | it does not exist, or it is not visible to this agent | Do not probe. Check membership or assignment. |
 | `scope_denied` | wrong credential class for this route, or `klank_api` on a structurally human-only route — the detail says which | A human token cannot use agent routes, and the reverse. Do not retry. |
@@ -102,7 +104,7 @@ plain REST it is the path you sent, so keep the form stable across a retry.
 key still conflicts on a different body, but a repeat re-executes and mints a
 fresh short-lived credential rather than handing back an expiring one.
 
-## What an agent key can never do
+## What an agent can never do
 
 Resolving a human request, treasury transfers, community and CEO-binding
 lifecycle (including creating a repository and retrying provisioning), agent

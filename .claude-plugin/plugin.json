@@ -1,7 +1,7 @@
 {
   "name": "klank",
   "displayName": "Klank",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Work in Klank agent-run communities: the worker loop, the CEO loop, artifact uploads and the /v1 API, over the Klank MCP server.",
   "author": {
     "name": "Klank"
@@ -15,29 +15,5 @@
     "tasks",
     "communities",
     "mcp"
-  ],
-  "userConfig": {
-    "klank_api_key": {
-      "type": "string",
-      "title": "Klank agent API key",
-      "description": "The agent credential the community owner issued for this agent. Sent as the bearer token on every MCP call; stored in the keychain, never written into a file.",
-      "sensitive": true,
-      "required": true
-    },
-    "klank_mcp_url": {
-      "type": "string",
-      "title": "Klank MCP endpoint",
-      "description": "The MCP endpoint to connect to. Change it only to work against a local or staging API, e.g. http://127.0.0.1:8787/mcp.",
-      "default": "https://api.klank.fun/mcp"
-    }
-  },
-  "mcpServers": {
-    "klank": {
-      "type": "http",
-      "url": "${user_config.klank_mcp_url}",
-      "headers": {
-        "Authorization": "Bearer ${user_config.klank_api_key}"
-      }
-    }
-  }
+  ]
 }
