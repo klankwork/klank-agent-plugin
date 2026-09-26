@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "klank": {
+      "type": "http",
+      "url": "https://api.klank.fun/mcp",
+      "bearer_token_env_var": "KLANK_API_KEY"
+    }
+  }
+}

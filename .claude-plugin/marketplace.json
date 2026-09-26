@@ -1,0 +1,14 @@
+{
+  "name": "klank",
+  "description": "Klank: the MCP connection and skills agents need to work in Klank communities.",
+  "owner": {
+    "name": "Klank"
+  },
+  "plugins": [
+    {
+      "name": "klank",
+      "source": "./",
+      "description": "Skills and the Klank MCP server connection for agents working in Klank communities."
+    }
+  ]
+}

@@ -1,0 +1,515 @@
+#!/usr/bin/env node
+// Offline validation of the Klank agent plugin package. No dependencies: it
+// runs anywhere node does, including a clean checkout with no network.
+//
+// What it proves:
+//   1. every JSON file in the repository parses
+//   2. no root Agent Plugins manifest (it switches Codex, Copilot and VS Code
+//      into a strict mode that drops the authenticated MCP server)
+//   3. each vendor manifest declares the credential the way that vendor spells it
+//   4. every skill's frontmatter is a valid Agent Skills header
+//   5. no credential material is checked in
+//   6. every tool name a skill mentions is a real, frozen Klank tool
+//   7. every script parses and is executable
+//
+// Check 6 is the one that earns its keep: skills are read by a model on every
+// relevant turn, and a mistyped tool name is a call the client cannot make. So
+// EVERY backticked bare identifier in `skills/**` must be either a frozen tool
+// name (test/tool-names.json, kept in sync with the core repo's TOOLS.md) or
+// listed in NON_TOOL_IDENTIFIERS below. Adding a field name to a skill means
+// adding it there — that is the point: a typo has nowhere to hide.
+
+import { readFileSync, readdirSync, statSync, accessSync, constants } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const errors = [];
+const notes = [];
+
+const fail = (where, message) => errors.push(`${where}: ${message}`);
+const rel = (path) => relative(ROOT, path) || ".";
+
+const SKIP_DIRS = new Set(["node_modules", ".git"]);
+
+function walk(dir, out = []) {
+  for (const entry of readdirSync(dir)) {
+    if (SKIP_DIRS.has(entry)) continue;
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) walk(full, out);
+    else out.push(full);
+  }
+  return out;
+}
+
+const files = walk(ROOT);
+const readText = (path) => readFileSync(path, "utf8");
+const PRODUCTION_MCP = "https://api.klank.fun/mcp";
+
+function readJson(path) {
+  try {
+    return JSON.parse(readText(path));
+  } catch (error) {
+    fail(rel(path), `is not valid JSON — ${error.message}`);
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 1. every JSON file parses
+// ---------------------------------------------------------------------------
+const jsonFiles = files.filter((f) => f.endsWith(".json"));
+const parsed = new Map();
+for (const file of jsonFiles) {
+  const value = readJson(file);
+  if (value !== null) parsed.set(rel(file), value);
+}
+
+const requireFile = (name) => {
+  const value = parsed.get(name);
+  if (value === undefined) fail(name, "is missing (or did not parse)");
+  return value;
+};
+
+// ---------------------------------------------------------------------------
+// 2. no root Agent Plugins manifest
+// ---------------------------------------------------------------------------
+// A root plugin.json (or mcp.json) puts Codex, Copilot CLI and VS Code into
+// Agent Plugins mode, which forbids variables in MCP urls and headers. Those
+// clients then load the skills and silently drop the Klank MCP server: an
+// agent with no tools. Each client reads its own manifest directory instead.
+for (const name of ["plugin.json", "mcp.json", ".mcp.json"]) {
+  if (files.some((f) => rel(f) === name)) {
+    fail(name, "must not exist at the root: it would replace every client's authenticated MCP server");
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 3. per-vendor credential declarations
+// ---------------------------------------------------------------------------
+const claude = requireFile(".claude-plugin/plugin.json");
+if (claude) {
+  const where = ".claude-plugin/plugin.json";
+  if (claude.name !== "klank") fail(where, `"name" must be "klank"`);
+  const key = claude.userConfig?.klank_api_key;
+  if (!key) fail(where, "userConfig.klank_api_key is missing");
+  else {
+    if (key.sensitive !== true) fail(where, "userConfig.klank_api_key.sensitive must be true");
+    if (key.required !== true) fail(where, "userConfig.klank_api_key.required must be true");
+    if (key.type !== "string") fail(where, "userConfig.klank_api_key.type must be \"string\"");
+  }
+  if (!claude.userConfig?.klank_mcp_url) fail(where, "userConfig.klank_mcp_url is missing");
+  const server = claude.mcpServers?.klank;
+  if (typeof claude.mcpServers === "string") {
+    fail(where, "mcpServers must be inline, not a path");
+  } else if (!server) {
+    fail(where, "mcpServers.klank is missing");
+  } else {
+    if (server.type !== "http") fail(where, 'mcpServers.klank.type must be "http"');
+    const auth = server.headers?.Authorization;
+    if (typeof auth !== "string" || !auth.includes("${user_config.klank_api_key}")) {
+      fail(where, "mcpServers.klank.headers.Authorization must reference ${user_config.klank_api_key}");
+    }
+    if (typeof server.url !== "string" || !server.url.includes("${user_config.klank_mcp_url}")) {
+      fail(where, "mcpServers.klank.url must reference ${user_config.klank_mcp_url}");
+    }
+  }
+}
+
+const marketplace = requireFile(".claude-plugin/marketplace.json");
+if (marketplace) {
+  const where = ".claude-plugin/marketplace.json";
+  if (!marketplace.name) fail(where, "\"name\" is required");
+  if (!marketplace.owner?.name) fail(where, "\"owner.name\" is required");
+  const entry = (marketplace.plugins ?? [])[0];
+  if (!entry) fail(where, "plugins[] must list the plugin");
+  else if (!entry.name || !entry.source) fail(where, "plugins[0] needs name and source");
+}
+
+const cursorManifest = requireFile(".cursor-plugin/plugin.json");
+if (cursorManifest) {
+  const where = ".cursor-plugin/plugin.json";
+  if (cursorManifest.name !== "klank") fail(where, `"name" must be "klank"`);
+  const vars = cursorManifest.variables;
+  if (vars?.type !== "object" || !vars.properties) fail(where, "variables must be an object schema");
+  else {
+    if (!vars.properties.KLANK_API_KEY) fail(where, "variables.properties.KLANK_API_KEY is missing");
+    if (!vars.properties.KLANK_MCP_URL) fail(where, "variables.properties.KLANK_MCP_URL is missing");
+    if (!(vars.required ?? []).includes("KLANK_API_KEY")) {
+      fail(where, "variables.required must include KLANK_API_KEY");
+    }
+  }
+  if (cursorManifest.mcpServers !== "./agents/cursor/mcp.json") {
+    fail(where, 'mcpServers must be "./agents/cursor/mcp.json"');
+  }
+}
+
+const cursorMcp = requireFile("agents/cursor/mcp.json");
+if (cursorMcp) {
+  const where = "agents/cursor/mcp.json";
+  const server = cursorMcp.mcpServers?.klank;
+  if (!server) fail(where, "mcpServers.klank is missing");
+  else {
+    // Without the default, a user who sets only the key gets no server at all.
+    if (server.url !== `\${KLANK_MCP_URL:-${PRODUCTION_MCP}}`) {
+      fail(where, `mcpServers.klank.url must be "\${KLANK_MCP_URL:-${PRODUCTION_MCP}}"`);
+    }
+    const auth = server.headers?.Authorization;
+    if (typeof auth !== "string" || !auth.includes("${KLANK_API_KEY}")) {
+      fail(where, "mcpServers.klank.headers.Authorization must reference ${KLANK_API_KEY}");
+    }
+  }
+}
+
+const codex = requireFile(".codex-plugin/plugin.json");
+if (codex) {
+  const where = ".codex-plugin/plugin.json";
+  if (codex.name !== "klank") fail(where, `"name" must be "klank"`);
+  if (codex.skills !== "./skills/") fail(where, 'skills must be "./skills/"');
+  if (codex.mcpServers !== "./agents/codex/mcp.json") fail(where, 'mcpServers must be "./agents/codex/mcp.json"');
+  const iface = codex.interface;
+  if (!iface) fail(where, "interface is missing");
+  else {
+    for (const key of ["displayName", "shortDescription", "longDescription", "developerName", "category", "brandColor"]) {
+      if (!iface[key]) fail(where, `interface.${key} is missing`);
+    }
+    if (!Array.isArray(iface.capabilities) || iface.capabilities.length === 0) {
+      fail(where, "interface.capabilities must be a non-empty array");
+    }
+    if (!Array.isArray(iface.defaultPrompt) || iface.defaultPrompt.length < 3) {
+      fail(where, "interface.defaultPrompt must list at least three prompts");
+    }
+    for (const key of ["logo", "logoDark", "composerIcon"]) {
+      if (iface[key]) fail(where, `interface.${key} names an image this package does not ship`);
+    }
+  }
+}
+
+const codexMcp = requireFile("agents/codex/mcp.json");
+if (codexMcp) {
+  const where = "agents/codex/mcp.json";
+  const server = codexMcp.mcpServers?.klank;
+  if (!server) fail(where, "mcpServers.klank is missing");
+  else {
+    if (server.type !== "http") fail(where, 'mcpServers.klank.type must be "http"');
+    if (server.bearer_token_env_var !== "KLANK_API_KEY") {
+      fail(where, 'mcpServers.klank.bearer_token_env_var must be "KLANK_API_KEY"');
+    }
+    if (server.headers) fail(where, "Codex reads no headers object; use bearer_token_env_var only");
+    if (server.url !== PRODUCTION_MCP) fail(where, `mcpServers.klank.url must be ${PRODUCTION_MCP}`);
+  }
+}
+
+const copilot = requireFile(".plugin/plugin.json");
+if (copilot) {
+  const where = ".plugin/plugin.json";
+  if (copilot.name !== "klank") fail(where, `"name" must be "klank"`);
+  if (copilot.skills !== "skills/") fail(where, 'skills must be "skills/"');
+  if (copilot.commands !== "commands/") fail(where, 'commands must be "commands/"');
+  if (copilot.mcpServers !== "./agents/copilot/mcp.json") {
+    fail(where, 'mcpServers must be "./agents/copilot/mcp.json"');
+  }
+}
+const copilotMcp = requireFile("agents/copilot/mcp.json");
+if (copilotMcp) {
+  const where = "agents/copilot/mcp.json";
+  const server = copilotMcp.mcpServers?.klank;
+  if (!server) fail(where, "mcpServers.klank is missing");
+  else {
+    if (server.type !== "http") fail(where, 'mcpServers.klank.type must be "http"');
+    if (server.url !== PRODUCTION_MCP) fail(where, `mcpServers.klank.url must be ${PRODUCTION_MCP}`);
+    if (server.headers?.Authorization !== "Bearer ${KLANK_API_KEY}") {
+      fail(where, 'mcpServers.klank.headers.Authorization must be "Bearer ${KLANK_API_KEY}"');
+    }
+  }
+}
+
+// Every path a manifest points at must exist.
+for (const [manifest, keys] of [
+  [".codex-plugin/plugin.json", ["skills", "mcpServers"]],
+  [".cursor-plugin/plugin.json", ["mcpServers"]],
+  [".plugin/plugin.json", ["skills", "commands", "mcpServers"]],
+]) {
+  for (const key of keys) {
+    const target = parsed.get(manifest)?.[key];
+    if (typeof target !== "string") continue;
+    try {
+      statSync(join(ROOT, target));
+    } catch {
+      fail(manifest, `${key} points at ${target}, which does not exist`);
+    }
+  }
+}
+
+const codexMarketplace = requireFile(".agents/plugins/marketplace.json");
+if (codexMarketplace) {
+  const entry = (codexMarketplace.plugins ?? [])[0];
+  if (codexMarketplace.name !== "klank" || entry?.name !== "klank") {
+    fail(".agents/plugins/marketplace.json", 'must list the "klank" plugin in the "klank" marketplace');
+  }
+}
+
+const versions = new Map(
+  [".claude-plugin/plugin.json", ".codex-plugin/plugin.json", ".cursor-plugin/plugin.json", ".plugin/plugin.json", "package.json"]
+    .map((name) => [name, parsed.get(name)?.version]),
+);
+if (new Set(versions.values()).size !== 1) {
+  fail("versions", `every manifest must carry the same version: ${JSON.stringify(Object.fromEntries(versions))}`);
+}
+
+// ---------------------------------------------------------------------------
+// 4. skills
+// ---------------------------------------------------------------------------
+const skillsDir = join(ROOT, "skills");
+const EXPECTED_SKILLS = ["klank-api", "klank-artifacts", "klank-ceo", "klank-setup", "klank-worker"];
+let skillDirs = [];
+try {
+  skillDirs = readdirSync(skillsDir).filter((d) => statSync(join(skillsDir, d)).isDirectory()).sort();
+} catch {
+  fail("skills/", "is missing");
+}
+for (const expected of EXPECTED_SKILLS) {
+  if (!skillDirs.includes(expected)) fail("skills/", `skills/${expected} is missing`);
+}
+
+const skillBodies = new Map();
+for (const dir of skillDirs) {
+  const path = join(skillsDir, dir, "SKILL.md");
+  const where = `skills/${dir}/SKILL.md`;
+  let text;
+  try {
+    text = readText(path);
+  } catch {
+    fail(where, "is missing");
+    continue;
+  }
+  skillBodies.set(where, text);
+
+  const match = text.match(/^---\n([\s\S]*?)\n---\n/);
+  if (!match) {
+    fail(where, "has no YAML frontmatter delimited by --- lines");
+    continue;
+  }
+  const front = match[1];
+  const nameLine = front.match(/^name:[ \t]*(.*)$/m);
+  const descLine = front.match(/^description:[ \t]*(.*)$/m);
+  if (!nameLine) fail(where, "frontmatter has no name:");
+  else if (nameLine[1].trim() !== dir) {
+    fail(where, `frontmatter name "${nameLine[1].trim()}" must equal the directory name "${dir}"`);
+  }
+  if (!descLine) fail(where, "frontmatter has no description:");
+  else {
+    const description = descLine[1].trim();
+    if (description.length === 0) fail(where, "description is empty");
+    if (description.length > 1024) fail(where, `description is ${description.length} chars (max 1024)`);
+    if (/^[>|]/.test(description)) fail(where, "description must be a single-line scalar, not a block");
+  }
+  for (const key of Object.keys(
+    Object.fromEntries(
+      front.split("\n").filter((l) => /^[A-Za-z-]+:/.test(l)).map((l) => [l.split(":")[0], true]),
+    ),
+  )) {
+    if (!["name", "description", "license", "compatibility", "metadata", "allowed-tools"].includes(key)) {
+      fail(where, `frontmatter key "${key}" is not in the Agent Skills field set`);
+    }
+  }
+  // Claude Code namespaces plugin skills as /klank:<name>; other clients do
+  // not. A skill that names its own command is wrong somewhere.
+  const slash = text.match(/(?:^|\s)\/(klank[a-z:-]*)/m);
+  if (slash) fail(where, `names a slash command ("/${slash[1]}"); skills must not`);
+}
+
+// ---------------------------------------------------------------------------
+// 5. no credential material
+// ---------------------------------------------------------------------------
+// Assembled rather than written out, so this file can scan itself.
+const CREDENTIAL_PREFIX = ["klank", "agent", ""].join("_");
+for (const file of files) {
+  let text;
+  try {
+    text = readText(file);
+  } catch {
+    continue;
+  }
+  if (text.includes(CREDENTIAL_PREFIX)) {
+    fail(rel(file), `contains the literal agent-credential prefix; write "<your key>" instead`);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 6. tool names used in skills
+// ---------------------------------------------------------------------------
+const vendored = requireFile("test/tool-names.json");
+const TOOLS = vendored ? new Set([...vendored.worker, ...vendored.ceo, ...vendored.always]) : new Set();
+
+// The core repo's frozen list, when this checkout sits beside it. Drift is an
+// error: the vendored copy is what CI validates against.
+const TOOLS_MD =
+  process.env.KLANK_TOOLS_MD ?? resolve(ROOT, "../klank/apps/api/src/mcp/TOOLS.md");
+// In CI the sibling checkout does not exist, so the drift check would silently
+// not run; require the override there.
+if (process.env.CI && !process.env.KLANK_TOOLS_MD) {
+  fail("KLANK_TOOLS_MD", "must point at the core repository's apps/api/src/mcp/TOOLS.md in CI");
+}
+try {
+  const md = readText(TOOLS_MD);
+  const upstream = new Set();
+  for (const line of md.split("\n")) {
+    const m = line.match(/^\|\s*`([a-z_][a-z0-9_]*)`\s*\|/);
+    if (m) upstream.add(m[1]);
+  }
+  if (upstream.size === 0) {
+    fail(rel(TOOLS_MD), "was readable but no tool rows were found in it");
+  } else {
+    for (const name of upstream) {
+      if (!TOOLS.has(name)) fail("test/tool-names.json", `is missing "${name}" from TOOLS.md`);
+    }
+    for (const name of TOOLS) {
+      if (!upstream.has(name)) fail("test/tool-names.json", `lists "${name}", which TOOLS.md does not`);
+    }
+    notes.push(`tool names cross-checked against ${TOOLS_MD} (${upstream.size} tools)`);
+  }
+} catch {
+  notes.push(`TOOLS.md not readable at ${TOOLS_MD}; validated against the vendored copy only`);
+}
+
+// The README's tool list is documentation people install from; it must name
+// exactly the frozen tools.
+{
+  const readme = readText(join(ROOT, "README.md"));
+  const section = readme.split(/^## Tools$/m)[1]?.split(/^## /m)[0] ?? "";
+  const listed = new Set([...section.matchAll(/`([a-z_][a-z0-9_]*)`/g)].map((m) => m[1]));
+  if (listed.size === 0) fail("README.md", 'has no "## Tools" section listing the tools');
+  for (const name of TOOLS) if (!listed.has(name)) fail("README.md", `## Tools is missing \`${name}\``);
+  for (const name of listed) if (!TOOLS.has(name)) fail("README.md", `## Tools lists \`${name}\`, which is not a Klank tool`);
+}
+
+// Backticked bare identifiers in skills that are deliberately NOT tool names:
+// request/response fields, problem codes, enum values, path segments and
+// external commands. Anything not here and not a tool name is a typo.
+const NON_TOOL_IDENTIFIERS = new Set([
+  "video_id", "image_id", "status_update_id",
+  // result fields and the batch ack argument
+  "key", "version", "inbox_item_ids", "requests", "acknowledged", "failed",
+  // request and response fields
+  "review_epoch_id", "collecting", "verifying", "needs_dispatch", "held", "decided",
+  "after", "agent_ids", "artifacts", "assignment_ids", "base_sha", "bio", "blocks",
+  "claim_token", "granted", "already_running",
+  "body", "brief", "content", "criteria", "current_version", "declared_tags",
+  "duplicate_of", "expected_version", "has_more", "idempotency_key",
+  "initiative_id", "instructions", "kind", "limit", "max_assignees", "message",
+  "meta", "name", "new_agent_id", "next_cursor", "next_expected_version",
+  "old_assignment_id", "options", "path", "primary", "primary_taxonomy_node_id",
+  "provider", "query", "rationale", "ready", "reason", "reasons", "related_task_id",
+  "related_task_key", "repository_id", "request_id", "required_checks",
+  "response_due_at", "response_window_seconds", "reward_atomic", "runtime_kind", "search",
+  "sha256", "size_bytes", "status", "tags", "taxonomy_tag_ids", "title", "url",
+  "usage", "winning_submission_id", "workspace_head_sha",
+  // the two reference arguments every scoped tool takes, and the path-style
+  // ids that sit alongside them
+  "assignment_id", "artifact_id", "community", "human_request_id",
+  "inbox_item_id", "membership_id", "relation_id", "submission_id", "task",
+  "task_id", "work_request_id",
+  // further request fields
+  "content_type", "cost_estimate_usd_micros", "entries", "filename", "head_sha",
+  "method", "note", "reward_asset_id", "source", "state", "target_at",
+  "taxonomy", "tool_calls", "wall_clock_seconds",
+  // MCP tool-result envelope fields and row fields the skills tell a model to read
+  "acknowledged", "capabilities", "data", "hint", "replayed", "source_id",
+  // problem codes
+  "artifact_invalid", "blocked", "ceo_binding_required", "human_request_open",
+  "image_blocked", "invite_required", "moderation_unavailable",
+  "idempotency_conflict", "internal_error", "not_found", "provider_unavailable",
+  "rate_limited", "relation_cycle", "request_already_active", "request_expired",
+  "request_not_active", "revision_frozen", "scope_denied", "validation_failed",
+  "version_conflict", "workspace_invalid",
+  // enum and literal values
+  "approve", "artifact", "ceo", "claude_code", "code", "codex", "cursor",
+  "decision", "draft", "duplicate", "external", "harness_metered", "hermes",
+  "not_needed", "openhands", "planned", "reject", "related", "review",
+  "self_reported", "unknown", "work",
+  // external commands and hosts named in prose
+  "agent", "curl", "export", "https", "jq", "python3",
+]);
+
+const backticked = /`([a-z][a-z0-9_]*)`/g;
+for (const [where, text] of skillBodies) {
+  const seen = new Set();
+  let m;
+  while ((m = backticked.exec(text)) !== null) {
+    const token = m[1];
+    if (seen.has(token) || TOOLS.has(token) || NON_TOOL_IDENTIFIERS.has(token)) continue;
+    seen.add(token);
+    const near = [...TOOLS].filter((tool) => distance(tool, token) <= 2);
+    fail(
+      where,
+      `\`${token}\` is neither a frozen tool name nor a known identifier` +
+        (near.length ? ` — did you mean ${near.map((n) => `\`${n}\``).join(" or ")}?` : ""),
+    );
+  }
+}
+
+function distance(a, b) {
+  const rows = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 0; j <= b.length; j += 1) rows[0][j] = j;
+  for (let i = 1; i <= a.length; i += 1) {
+    for (let j = 1; j <= b.length; j += 1) {
+      rows[i][j] = Math.min(
+        rows[i - 1][j] + 1,
+        rows[i][j - 1] + 1,
+        rows[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+    }
+  }
+  return rows[a.length][b.length];
+}
+
+// ---------------------------------------------------------------------------
+// 7. scripts
+// ---------------------------------------------------------------------------
+for (const script of ["scripts/klank-upload", "scripts/klank-check", "scripts/klank-image-upload", "scripts/klank-video-upload"]) {
+  const path = join(ROOT, script);
+  try {
+    accessSync(path, constants.X_OK);
+  } catch {
+    fail(script, "is missing or not executable (chmod +x)");
+    continue;
+  }
+  // Parse with the interpreter the shebang names, without running the script.
+  const python = readText(path).startsWith("#!/usr/bin/env python3");
+  const [cmd, args] = python
+    ? ["python3", ["-c", "import ast,sys; ast.parse(open(sys.argv[1]).read())", path]]
+    : ["sh", ["-n", path]];
+  try {
+    execFileSync(cmd, args, { stdio: "pipe" });
+  } catch (error) {
+    fail(script, `${cmd} parse failed — ${String(error.stderr ?? error.message).trim()}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// commands: a one-line description each
+// ---------------------------------------------------------------------------
+for (const command of ["klank-inbox", "klank-work", "klank-attention"]) {
+  const where = `commands/${command}.md`;
+  try {
+    const text = readText(join(ROOT, where));
+    if (!/^---\n[\s\S]*?^description:[ \t]*\S/m.test(text)) {
+      fail(where, "needs a frontmatter description:");
+    }
+  } catch {
+    fail(where, "is missing");
+  }
+}
+
+// ---------------------------------------------------------------------------
+for (const note of notes) console.log(`note: ${note}`);
+if (errors.length > 0) {
+  console.error(`\n${errors.length} problem(s):`);
+  for (const error of errors) console.error(`  - ${error}`);
+  process.exit(1);
+}
+console.log(
+  `ok: ${jsonFiles.length} JSON files, ${skillBodies.size} skills, ${TOOLS.size} tool names, 4 scripts`,
+);

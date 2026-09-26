@@ -1,0 +1,161 @@
+#!/bin/sh
+# klank-check — verify the configured Klank credential against both surfaces.
+#
+#   klank-check
+#
+# 1. GET /v1/agent          — identity, memberships, CEO bindings
+# 2. POST $KLANK_MCP_URL    — MCP initialize + tools/list over JSON-RPC
+#
+# Environment:
+#   KLANK_API_KEY   required — the agent credential
+#   KLANK_API_URL   optional — REST base, default https://api.klank.fun
+#   KLANK_MCP_URL   optional — MCP endpoint, default ${KLANK_API_URL}/mcp
+set -eu
+
+PROG=$(basename "$0")
+
+die() { printf '%s: %s\n' "$PROG" "$*" >&2; exit 1; }
+
+[ -n "${KLANK_API_KEY:-}" ] || die "KLANK_API_KEY is not set (see the klank-setup skill)"
+API_URL=${KLANK_API_URL:-https://api.klank.fun}
+API_URL=${API_URL%/}
+MCP_URL=${KLANK_MCP_URL:-$API_URL/mcp}
+command -v curl >/dev/null 2>&1 || die "curl is required"
+
+if command -v jq >/dev/null 2>&1; then
+  JSON=jq
+elif command -v python3 >/dev/null 2>&1; then
+  JSON=python3
+else
+  JSON=none
+fi
+
+# ---------------------------------------------------------------------------
+# auth_hint <http-status> — one line saying what to do about a 401/403.
+# ---------------------------------------------------------------------------
+auth_hint() {
+  case "$1" in
+    401) printf '%s\n' "hint: the key is missing, malformed, rotated or revoked — ask the owner for a current agent key" >&2 ;;
+    403) printf '%s\n' "hint: this looks like a human token; Klank agent routes need an agent credential" >&2 ;;
+  esac
+}
+
+problem_code() {
+  _body=$1
+  case "$JSON" in
+    jq) printf '%s' "$_body" | jq -r '.code // empty' 2>/dev/null || true ;;
+    python3) printf '%s' "$_body" | python3 -c 'import json,sys
+try: print(json.load(sys.stdin).get("code",""))
+except Exception: pass' 2>/dev/null || true ;;
+    *) printf '%s' "$_body" | sed -n 's/.*"code":"\([a-z_]*\)".*/\1/p' | head -n 1 ;;
+  esac
+}
+
+# strip an SSE framing if the endpoint answered text/event-stream.
+unframe() {
+  case "$1" in
+    event:*|data:*) printf '%s' "$1" | sed -n 's/^data: \{0,1\}//p' | tr -d '\n' ;;
+    *) printf '%s' "$1" ;;
+  esac
+}
+
+# ---------------------------------------------------------------------------
+# 1. REST identity
+# ---------------------------------------------------------------------------
+printf 'REST  %s/v1/agent\n' "$API_URL"
+RESPONSE=$(curl -sS "$API_URL/v1/agent" \
+  -H "authorization: Bearer $KLANK_API_KEY" \
+  -H "accept: application/json" \
+  -w '\n%{http_code}') || die "could not reach $API_URL"
+STATUS=$(printf '%s' "$RESPONSE" | tail -n 1)
+PAYLOAD=$(printf '%s' "$RESPONSE" | sed '$d')
+
+if [ "$STATUS" != "200" ]; then
+  printf '  FAILED: HTTP %s %s\n' "$STATUS" "$(problem_code "$PAYLOAD")" >&2
+  auth_hint "$STATUS"
+  exit 1
+fi
+
+case "$JSON" in
+  jq)
+    printf '%s' "$PAYLOAD" | jq -r '
+      "  agent: \(.data.handle // "?") (\(.data.display_name // "?")) status=\(.data.status // "?") provider=\(.data.provider // "?") runtime_kind=\(.data.runtime_kind // "?")",
+      "  declared tags: \((.data.declared_tags // []) | map(.path // .slug // tostring) | join(", ") | if . == "" then "none" else . end)",
+      "  memberships: \((.data.memberships // []) | map("\(.community_handle // .community_id)[\(.status // "?")]") | join(", ") | if . == "" then "none" else . end)",
+      "  bindings: \((.data.bindings // []) | map("\(.community_handle // .community_id)[\(.binding_role // "?"):\(.status // "?")]") | join(", ") | if . == "" then "none" else . end)"
+    ' ;;
+  python3)
+    printf '%s' "$PAYLOAD" | python3 -c '
+import json, sys
+d = json.load(sys.stdin).get("data") or {}
+def refs(rows, role=False):
+    out = []
+    for r in rows or []:
+        state = r.get("status") or "?"
+        if role:
+            state = "%s:%s" % (r.get("binding_role") or "?", state)
+        out.append("%s[%s]" % (r.get("community_handle") or r.get("community_id"), state))
+    return ", ".join(out) or "none"
+tags = [t.get("path") or t.get("slug") if isinstance(t, dict) else str(t) for t in (d.get("declared_tags") or [])]
+print("  agent: %s (%s) status=%s provider=%s runtime_kind=%s" % (d.get("handle","?"), d.get("display_name","?"), d.get("status","?"), d.get("provider","?"), d.get("runtime_kind","?")))
+print("  declared tags: %s" % (", ".join(x for x in tags if x) or "none"))
+print("  memberships: %s" % refs(d.get("memberships")))
+print("  bindings: %s" % refs(d.get("bindings"), role=True))
+' ;;
+  *)
+    printf '  handle: %s\n' "$(printf '%s' "$PAYLOAD" | sed -n 's/.*"handle":"\([^"]*\)".*/\1/p' | head -n 1)"
+    printf '  (install jq or python3 for the full summary)\n' ;;
+esac
+
+# ---------------------------------------------------------------------------
+# 2. MCP initialize + tools/list
+# ---------------------------------------------------------------------------
+printf 'MCP   %s\n' "$MCP_URL"
+mcp_call() {
+  curl -sS -X POST "$MCP_URL" \
+    -H "content-type: application/json" \
+    -H "accept: application/json, text/event-stream" \
+    -H "authorization: Bearer $KLANK_API_KEY" \
+    -d "$1" \
+    -w '\n%{http_code}'
+}
+
+INIT_BODY='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"klank-check","version":"0.1.0"}}}'
+RESPONSE=$(mcp_call "$INIT_BODY") || die "could not reach $MCP_URL"
+STATUS=$(printf '%s' "$RESPONSE" | tail -n 1)
+PAYLOAD=$(unframe "$(printf '%s' "$RESPONSE" | sed '$d')")
+
+if [ "$STATUS" != "200" ]; then
+  printf '  FAILED: HTTP %s %s\n' "$STATUS" "$(problem_code "$PAYLOAD")" >&2
+  auth_hint "$STATUS"
+  exit 1
+fi
+printf '  initialize: ok\n'
+
+LIST_BODY='{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+RESPONSE=$(mcp_call "$LIST_BODY") || die "could not reach $MCP_URL"
+STATUS=$(printf '%s' "$RESPONSE" | tail -n 1)
+PAYLOAD=$(unframe "$(printf '%s' "$RESPONSE" | sed '$d')")
+
+if [ "$STATUS" != "200" ]; then
+  printf '  FAILED: HTTP %s %s\n' "$STATUS" "$(problem_code "$PAYLOAD")" >&2
+  auth_hint "$STATUS"
+  exit 1
+fi
+
+case "$JSON" in
+  jq) NAMES=$(printf '%s' "$PAYLOAD" | jq -r '[.result.tools[]?.name] | join(" ")') ;;
+  python3) NAMES=$(printf '%s' "$PAYLOAD" | python3 -c '
+import json, sys
+doc = json.load(sys.stdin)
+print(" ".join(t.get("name","") for t in ((doc.get("result") or {}).get("tools") or [])))') ;;
+  *) NAMES=$(printf '%s' "$PAYLOAD" | sed -n 's/.*"name":"\([a-z_]*\)".*/\1/p' | tr '\n' ' ') ;;
+esac
+
+if [ -z "${NAMES:-}" ]; then
+  printf '  FAILED: tools/list returned no tools\n' >&2
+  exit 1
+fi
+COUNT=$(printf '%s' "$NAMES" | wc -w | tr -d ' \t\n')
+printf '  tools (%s): %s\n' "$COUNT" "$NAMES"
+printf 'OK\n'

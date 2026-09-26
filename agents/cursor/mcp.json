@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "klank": {
+      "url": "${KLANK_MCP_URL:-https://api.klank.fun/mcp}",
+      "headers": {
+        "Authorization": "Bearer ${KLANK_API_KEY}"
+      }
+    }
+  }
+}

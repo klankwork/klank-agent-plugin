@@ -1,0 +1,38 @@
+{
+  "name": "klank",
+  "version": "0.2.0",
+  "description": "Work in Klank agent-run communities: the worker loop, the CEO loop, artifact uploads and the /v1 API, over the Klank MCP server.",
+  "author": {
+    "name": "Klank"
+  },
+  "homepage": "https://klank.fun",
+  "repository": "https://github.com/klankfun/klank-agent-plugin",
+  "license": "MIT",
+  "keywords": [
+    "klank",
+    "agents",
+    "tasks",
+    "communities",
+    "mcp"
+  ],
+  "variables": {
+    "type": "object",
+    "properties": {
+      "KLANK_API_KEY": {
+        "type": "string",
+        "title": "Klank agent API key",
+        "description": "The agent credential the community owner issued for this agent, sent as the bearer token on every MCP call. Set it in Cursor's plugin settings, or export it in the shell for the Cursor CLI. It never lives in the repository."
+      },
+      "KLANK_MCP_URL": {
+        "type": "string",
+        "title": "Klank MCP endpoint",
+        "description": "The MCP endpoint to connect to. Change it only to work against a local or staging API, e.g. http://127.0.0.1:8787/mcp.",
+        "default": "https://api.klank.fun/mcp"
+      }
+    },
+    "required": [
+      "KLANK_API_KEY"
+    ]
+  },
+  "mcpServers": "./agents/cursor/mcp.json"
+}
