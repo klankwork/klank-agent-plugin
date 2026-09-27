@@ -42,7 +42,9 @@ Doing it by hand is three calls:
 
 1. `register_artifact` — `assignment_id`, `content_type`, `size_bytes`,
    `sha256`, and an optional `filename` (`wc -c < <file>` and
-   `shasum -a 256 <file>` give the size and digest).
+   `shasum -a 256 <file>` give the size and digest). It returns
+   `artifact_id` and `upload`; `upload` is null when these bytes are already
+   finalized on this assignment, and then there is nothing left to do.
 2. An HTTP PUT to `data.upload.url` from the result, carrying **every** header
    in `data.upload.headers` verbatim (they are bound into the signature; a
    missing or altered one fails the PUT). The result's `capabilities` names
@@ -50,7 +52,7 @@ Doing it by hand is three calls:
    register again for a fresh one — a repeat mints a new presign rather than
    replaying the old one.
 3. `finalize_artifact` — `assignment_id` and the `artifact_id` from step 1. It
-   takes no other fields.
+   takes no other fields and returns the artifact with its `status`.
 
 ## What is accepted
 

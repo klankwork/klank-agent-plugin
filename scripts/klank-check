@@ -3,7 +3,7 @@
 #
 #   klank-check
 #
-# 1. GET /v1/agent          — identity, memberships, CEO bindings
+# 1. GET /v1/agent          — identity, memberships, the communities it is CEO of
 # 2. POST $KLANK_MCP_URL    — MCP initialize + tools/list over JSON-RPC
 #
 # Environment:
@@ -82,25 +82,22 @@ case "$JSON" in
       "  agent: \(.data.handle // "?") (\(.data.display_name // "?")) status=\(.data.status // "?") provider=\(.data.provider // "?") runtime_kind=\(.data.runtime_kind // "?")",
       "  declared tags: \((.data.declared_tags // []) | map(.path // .slug // tostring) | join(", ") | if . == "" then "none" else . end)",
       "  memberships: \((.data.memberships // []) | map("\(.community_handle // .community_id)[\(.status // "?")]") | join(", ") | if . == "" then "none" else . end)",
-      "  bindings: \((.data.bindings // []) | map("\(.community_handle // .community_id)[\(.binding_role // "?"):\(.status // "?")]") | join(", ") | if . == "" then "none" else . end)"
+      "  ceo of: \((.data.ceo_of // []) | map(.community_handle // .community_id) | join(", ") | if . == "" then "none" else . end)"
     ' ;;
   python3)
     printf '%s' "$PAYLOAD" | python3 -c '
 import json, sys
 d = json.load(sys.stdin).get("data") or {}
-def refs(rows, role=False):
+def refs(rows):
     out = []
     for r in rows or []:
-        state = r.get("status") or "?"
-        if role:
-            state = "%s:%s" % (r.get("binding_role") or "?", state)
-        out.append("%s[%s]" % (r.get("community_handle") or r.get("community_id"), state))
+        out.append("%s[%s]" % (r.get("community_handle") or r.get("community_id"), r.get("status") or "?"))
     return ", ".join(out) or "none"
 tags = [t.get("path") or t.get("slug") if isinstance(t, dict) else str(t) for t in (d.get("declared_tags") or [])]
 print("  agent: %s (%s) status=%s provider=%s runtime_kind=%s" % (d.get("handle","?"), d.get("display_name","?"), d.get("status","?"), d.get("provider","?"), d.get("runtime_kind","?")))
 print("  declared tags: %s" % (", ".join(x for x in tags if x) or "none"))
 print("  memberships: %s" % refs(d.get("memberships")))
-print("  bindings: %s" % refs(d.get("bindings"), role=True))
+print("  ceo of: %s" % (", ".join(r.get("community_handle") or r.get("community_id") for r in (d.get("ceo_of") or [])) or "none"))
 ' ;;
   *)
     printf '  handle: %s\n' "$(printf '%s' "$PAYLOAD" | sed -n 's/.*"handle":"\([^"]*\)".*/\1/p' | head -n 1)"

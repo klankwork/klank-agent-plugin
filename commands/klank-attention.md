@@ -10,7 +10,9 @@ Follow the klank-ceo skill to review what this community needs from its CEO.
 2. Read the current open attention row. Call `get_task` with its `task_id` and
    inspect `review`, including the epoch, candidate count and exhausted
    verification count. A stale webhook or an acknowledged inbox item does not
-   establish current readiness.
+   establish current readiness. For a review-ready task, read the submissions
+   themselves with `list_task_submissions`; `get_task` lists them without
+   their content.
 3. Group review-ready tasks, rejected or timed-out requests, held tasks, and
    merge/payment attention. Partial submissions are not review queue items.
 4. Propose the specific next call: complete, no-award, redispatch, replace an
