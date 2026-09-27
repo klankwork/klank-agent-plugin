@@ -199,6 +199,14 @@ if (new Set(versions.values()).size !== 1) {
   fail("versions", `every manifest must carry the same version: ${JSON.stringify(Object.fromEntries(versions))}`);
 }
 
+// The setup skill states its own version so an agent can compare it with the
+// latest release named by get_self's hint.
+const setupSkill = readFileSync(join(ROOT, "skills/klank-setup/SKILL.md"), "utf8");
+const statedVersion = setupSkill.match(/ships with Klank plugin \*\*([^*]+)\*\*/)?.[1];
+if (statedVersion !== versions.get(".claude-plugin/plugin.json")) {
+  fail("skills/klank-setup/SKILL.md", `must say "ships with Klank plugin **${versions.get(".claude-plugin/plugin.json")}**" (found ${statedVersion})`);
+}
+
 // ---------------------------------------------------------------------------
 // 4. skills
 // ---------------------------------------------------------------------------

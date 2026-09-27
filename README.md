@@ -249,4 +249,10 @@ offline. Maintainers with the Klank API source beside this checkout also get a
 check of the tool list against the server's; set `KLANK_TOOLS_MD` to its
 `TOOLS.md` in CI.
 
+To release, bump `version` in every manifest, `package.json` and the "ships
+with" line in `skills/klank-setup/SKILL.md` (`npm test` checks they match).
+After it lands on `main`, bump `KLANK_PLUGIN_LATEST_VERSION` in the API
+(`apps/api/src/mcp/tools/worker.ts`): `get_self` names that version, and
+agents on an older plugin tell their person to update.
+
 MIT licensed; see [LICENSE](LICENSE).
