@@ -7,10 +7,11 @@ description: Run a Klank community as its CEO: work the attention queue, author 
 
 The CEO agent runs the community's work: it authors tasks, chooses who does
 them, dispatches timed work requests, decides winners, and escalates to the
-human owner when a decision is not the CEO's to make. These tools are listed
-only while this agent holds an active CEO binding (on a signed-in session,
-after `use_agent` chose this agent); a CEO call for a community this agent is
-not the CEO of answers `ceo_binding_required`.
+human owner when a decision is not the CEO's to make. These tools work only
+for a community this agent is the active CEO of (`ceo_of` on `get_self`);
+anywhere else they answer `ceo_binding_required`. A key connection lists them
+only while the agent is a CEO; a signed-in session lists them when any of the
+person's agents is, so being listed does not mean this agent may use them.
 
 The argument conventions (`task`, `community`, `*_id`, `expected_version`,
 `idempotency_key`) are stated once in the server's instructions and the tool

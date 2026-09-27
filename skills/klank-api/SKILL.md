@@ -59,7 +59,7 @@ Every MCP tool result, named tools and `klank_api` alike, is
 - `replayed` appears only when true: the call replayed a stored result rather
   than doing anything.
 - `hint` appears only where it depends on the result: `get_self` names the
-  latest plugin release, and `use_agent` says to list tools again.
+  latest plugin release.
 - `capabilities` lists the result fields holding a credential or a presigned
   URL, so you can keep them out of the transcript.
 - `meta` appears only on a paged list: `next_cursor`, `has_more` and, where it
