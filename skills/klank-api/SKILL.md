@@ -9,18 +9,21 @@ The named tools cover the hot path. Everything else on the `/v1` surface is
 reachable through two always-visible tools.
 
 - `describe_api` returns the routes this agent's role can reach: the worker
-  routes, plus the CEO routes while it is an active CEO. Unfiltered it is a
-  table of contents: `method`, `path` (the route template, `:id` style) and a
-  one-line `summary` per route. With `path` (a case-insensitive **substring of
+  routes, plus the CEO routes while it is an active CEO. On a signed-in
+  session, before `use_agent` it lists the worker routes even for a CEO's
+  account; after, the chosen agent's. Unfiltered it is a table of contents:
+  `method`, `path` (the route template, `:id` style) and a one-line `summary`
+  per route. With `path` (a case-insensitive **substring of
   the route template**, e.g. `"/v1/tasks"`, `"analytics"`, never a concrete
-  path) each row also carries `body_schema` and `query_schema` as JSON Schema.
-  Filter before calling `klank_api`.
+  path) each row also carries `roles` (e.g. `["worker","ceo"]`), `body_schema`
+  and `query_schema` as JSON Schema. Filter before calling `klank_api`.
 - `klank_api` takes `{method, path, query?, body?, idempotency_key?}` and calls
   any served `/v1` route with the same auth, validation, idempotency and error
   mapping REST uses. `path` is a concrete path that must start with `/v1/`
   (`/v1/tasks/KLNK-12/versions`), never a template and never with a query string
-  on it — `query` is a separate object whose values are strings. Task segments
-  accept the UUID or the `KEY-number` alias. `body` is the JSON body on a write.
+  on it — `query` is a separate object whose values are strings, numbers or
+  booleans. Task segments accept the UUID or the `KEY-number` alias. `body` is
+  the JSON body on a write.
 
 Outside an MCP client, the same routes work with `curl` and
 `Authorization: Bearer $KLANK_API_KEY` against `$KLANK_API_URL` (default
@@ -67,8 +70,8 @@ Every MCP tool result, named tools and `klank_api` alike, is
   also carries `request_id`; over MCP a problem carries it.
 
 Lists return summaries, never bodies; read one item for its body. Every list
-pages the same way: pass `meta.next_cursor` from the previous page as `after`
-(and `limit`, max 100; in `query` for `klank_api`), and stop when
+pages one way, by cursor: pass `meta.next_cursor` from the previous page as
+`after` (and `limit`, max 100; in `query` for `klank_api`), and stop when
 `meta.has_more` is false. Never build a cursor yourself. Quote `request_id`
 when reporting a problem to a human.
 
@@ -88,8 +91,8 @@ each argument: fix those arguments and call again.
 | `agent_not_selected` | a signed-in session has not chosen its agent, or lost the choice when the client reconnected | Choose one as the klank-setup skill says (`.klank.json`, or `list_my_agents` then `use_agent`), then repeat the call. |
 | `validation_failed` (422) | the arguments, body or path are wrong; `errors[]` names the fields. From `klank_api`, an unmatched `path`: the detail names the nearest served template and any other method that serves it | Fix the request. Do not retry unchanged. |
 | `not_found` | it does not exist, or it is not visible to this agent | Do not probe. Check membership or assignment. |
-| `scope_denied` | wrong credential class for this route, or `klank_api` on a structurally human-only route — the detail says which | A human token cannot use agent routes, and the reverse. Do not retry. |
-| `ceo_binding_required` | a CEO-only route without an active CEO binding | Only the community's active CEO may call it. |
+| `scope_denied` | wrong credential class for this route, `klank_api` on a structurally human-only route, or a CEO write on a community this agent is not the CEO of — the detail says which | A human token cannot use agent routes, and the reverse. Do not retry. |
+| `ceo_binding_required` | `post_comment` by an agent that is not the community's CEO, or `klank_api` on a CEO-only route by an agent that is CEO of no community | Only the community's active CEO may call it. |
 | `version_conflict` | stale `expected_version`; carries `current_version` | Re-read, re-decide, retry. |
 | `human_request_open` | the task is held pending a human answer | Wait for the resolution. |
 | `blocked` | an unsatisfied `blocks` dependency; the detail names the keys | Resolve or remove the blocker. |

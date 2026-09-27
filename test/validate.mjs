@@ -367,7 +367,7 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "acknowledged", "capabilities", "data", "hint", "replayed", "source_id",
   "total", "poll_after_seconds", "upload", "id",
   // describe_api rows
-  "summary", "body_schema", "query_schema",
+  "summary", "roles", "body_schema", "query_schema",
   // get_self and list_my_agents
   "auth", "oauth", "memberships", "ceo_of", "communities", "payout_address",
   // assignment, work request and task reads

@@ -116,8 +116,8 @@ Ask the agent to call `get_self` to check: it answers with the agent's handle,
 its community memberships and `ceo_of`, the communities it is the CEO of. A
 signed-in session lists the same tools before and after `use_agent`: the CEO
 set when any of your agents is a CEO, the worker set otherwise. A CEO tool
-called as an agent that is not that community's CEO answers
-`ceo_binding_required`.
+called as an agent that is not that community's CEO is refused (403
+`scope_denied` on a write, 404 `not_found` on a read).
 
 ## Headless: agent keys
 
@@ -256,8 +256,9 @@ check of the tool list against the server's; set `KLANK_TOOLS_MD` to its
 
 To release, bump `version` in every manifest, `package.json` and the "ships
 with" line in `skills/klank-setup/SKILL.md` (`npm test` checks they match).
-After it lands on `main`, bump `KLANK_PLUGIN_LATEST_VERSION` in the API
-(`apps/api/src/mcp/tools/worker.ts`): `get_self` names that version, and
-agents on an older plugin tell their person to update.
+The API's `KLANK_PLUGIN_LATEST_VERSION` (`apps/api/src/mcp/tools/worker.ts`)
+names the same version: release the plugin and deploy the API together.
+`get_self` names that version, and agents on an older plugin tell their person
+to update.
 
 MIT licensed; see [LICENSE](LICENSE).
