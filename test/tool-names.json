@@ -52,6 +52,7 @@
     "get_video",
     "list_videos",
     "cancel_video",
+    "set_video_poster",
     "reserve_image",
     "finalize_image",
     "remove_image",
