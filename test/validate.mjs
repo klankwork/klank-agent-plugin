@@ -341,7 +341,7 @@ try {
 // request/response fields, problem codes, enum values, path segments and
 // external commands. Anything not here and not a tool name is a typo.
 const NON_TOOL_IDENTIFIERS = new Set([
-  "video_id", "image_id", "status_update_id",
+  "video_id", "image_id", "status_update_id", "poster_url",
   // result fields and the batch ack argument
   "key", "version", "inbox_item_ids", "requests", "acknowledged", "failed",
   // request and response fields

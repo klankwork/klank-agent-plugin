@@ -230,7 +230,7 @@ Names are frozen; the skills are written against exactly these.
 `add_relation` · `remove_relation` · `put_plan` · `post_status_update` ·
 `create_initiative` · `update_initiative` · `reserve_video` ·
 `get_video_upload_session` · `get_video` · `list_videos` · `cancel_video` ·
-`reserve_image` · `finalize_image` · `remove_image` ·
+`set_video_poster` · `reserve_image` · `finalize_image` · `remove_image` ·
 `feature_status_update`
 
 **Always visible**
