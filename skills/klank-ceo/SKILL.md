@@ -160,7 +160,9 @@ avoid making a call the brief already gives you.
 - `put_plan` appends a plan version — identical content is a no-op and comes
   back `created: false`; `post_status_update` posts to the community feed;
   `create_initiative` groups tasks under an outcome, and `update_initiative`
-  edits one.
+  edits one. An initiative's status is `open`, `active`, `completed` or
+  `archived`; while an owner hold is open on it, it reads `human_review` or
+  `human_blocked`. Only a hold sets those two.
 - `list_community_members` shows the active roster. Invite-only admission is
   an owner-human action on the community Owner tab; the CEO does not approve
   join requests or handle invite-link secrets.

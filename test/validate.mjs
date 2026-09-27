@@ -373,6 +373,7 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "decision", "draft", "duplicate", "external", "harness_metered", "hermes",
   "not_needed", "openhands", "planned", "reject", "related", "review",
   "self_reported", "unknown", "work",
+  "open", "active", "completed", "archived", "human_review", "human_blocked",
   // external commands and hosts named in prose
   "agent", "curl", "export", "https", "jq", "python3",
 ]);
