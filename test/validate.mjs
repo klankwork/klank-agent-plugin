@@ -341,18 +341,17 @@ try {
 // request/response fields, problem codes, enum values, path segments and
 // external commands. Anything not here and not a tool name is a typo.
 const NON_TOOL_IDENTIFIERS = new Set([
-  "video_id", "image_id", "status_update_id", "poster_url",
+  "video_id", "image_id", "poster_url",
   // result fields and the batch ack argument
-  "key", "version", "inbox_item_ids", "requests", "acknowledged", "failed",
+  "key", "version", "inbox_item_ids", "requests",
   // request and response fields
   "review_epoch_id", "collecting", "verifying", "needs_dispatch", "held", "decided",
   "after", "agent_ids", "artifacts", "assignment_ids", "base_sha", "bio", "blocks",
   "claim_token", "granted", "already_running",
   "body", "brief", "content", "criteria", "current_version", "declared_tags",
   "duplicate_of", "expected_version", "has_more", "idempotency_key",
-  "initiative_id", "instructions", "kind", "limit", "max_assignees", "message",
-  "meta", "name", "new_agent_id", "next_cursor", "next_expected_version",
-  "old_assignment_id", "options", "path", "primary", "primary_taxonomy_node_id",
+  "initiative_id", "instructions", "kind", "limit", "max_assignees", "meta",
+  "name", "next_cursor", "options", "path", "primary", "primary_taxonomy_node_id",
   "provider", "query", "rationale", "ready", "reason", "reasons", "related_task_id",
   "related_task_key", "repository_id", "request_id", "required_checks",
   "response_due_at", "response_window_seconds", "reward_atomic", "runtime_kind", "search",
@@ -360,15 +359,25 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "usage", "winning_submission_id", "workspace_head_sha",
   // the two reference arguments every scoped tool takes, and the path-style
   // ids that sit alongside them
-  "assignment_id", "artifact_id", "community", "human_request_id",
-  "inbox_item_id", "membership_id", "relation_id", "submission_id", "task",
-  "task_id", "work_request_id",
+  "assignment_id", "artifact_id", "community", "relation_id", "submission_id",
+  "task", "task_id", "work_request_id",
   // further request fields
-  "content_type", "cost_estimate_usd_micros", "entries", "filename", "head_sha",
-  "method", "note", "reward_asset_id", "source", "state", "target_at",
-  "taxonomy", "tool_calls", "wall_clock_seconds",
+  "content_type", "filename", "head_sha", "method", "note", "state", "taxonomy",
   // MCP tool-result envelope fields and row fields the skills tell a model to read
   "acknowledged", "capabilities", "data", "hint", "replayed", "source_id",
+  "total", "poll_after_seconds", "upload", "id",
+  // describe_api rows
+  "summary", "body_schema", "query_schema",
+  // get_self and list_my_agents
+  "auth", "oauth", "memberships", "ceo_of", "communities", "payout_address",
+  // assignment, work request and task reads
+  "task_key", "task_title", "task_status", "repository", "default_branch",
+  "payment", "ended", "all",
+  // list_assignable_agents rows and reason codes
+  "score_bps", "win_rate_bps", "rated_count", "active_assignments", "matched_tags",
+  "won_here", "won_elsewhere", "no_wins", "no_history", "tag_match", "top_earner", "busy",
+  // list_task_submissions rows
+  "verification_status", "eligible", "links", "code_review", "outcome", "merge_state",
   // problem codes
   "artifact_invalid", "blocked", "ceo_binding_required", "human_request_open",
   "image_blocked", "invite_required", "moderation_unavailable",
@@ -377,13 +386,11 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "request_not_active", "revision_frozen", "scope_denied", "validation_failed",
   "version_conflict", "workspace_invalid",
   // enum and literal values
-  "approve", "artifact", "ceo", "claude_code", "code", "codex", "cursor",
-  "decision", "draft", "duplicate", "external", "harness_metered", "hermes",
-  "not_needed", "openhands", "planned", "reject", "related", "review",
-  "self_reported", "unknown", "work",
+  "artifact", "code", "decision", "draft", "duplicate", "external", "not_needed",
+  "planned", "related", "review", "work",
   "open", "active", "completed", "archived", "human_review", "human_blocked",
   // external commands and hosts named in prose
-  "agent", "curl", "export", "https", "jq", "python3",
+  "agent", "curl", "https", "jq", "python3",
 ]);
 
 const backticked = /`([a-z][a-z0-9_]*)`/g;
@@ -400,6 +407,18 @@ for (const [where, text] of skillBodies) {
       `\`${token}\` is neither a frozen tool name nor a known identifier` +
         (near.length ? ` — did you mean ${near.map((n) => `\`${n}\``).join(" or ")}?` : ""),
     );
+  }
+}
+
+// The reverse: an identifier no skill mentions any more is a removed field
+// waiting to creep back in unchecked. Drop it from the list.
+{
+  const used = new Set();
+  for (const text of skillBodies.values()) {
+    for (const m of text.matchAll(backticked)) used.add(m[1]);
+  }
+  for (const token of NON_TOOL_IDENTIFIERS) {
+    if (!used.has(token)) fail("test/validate.mjs", `NON_TOOL_IDENTIFIERS lists \`${token}\`, which no skill mentions; remove it`);
   }
 }
 

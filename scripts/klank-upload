@@ -169,14 +169,13 @@ case "$STATUS" in
 esac
 
 ARTIFACT_ID=$(json_get "$PAYLOAD" ".data.artifact_id")
-ARTIFACT_STATUS=$(json_get "$PAYLOAD" ".data.status")
 UPLOAD_URL=$(json_get "$PAYLOAD" ".data.upload.url")
 [ -n "$ARTIFACT_ID" ] || die "the register response carried no artifact_id"
 
 if [ -z "$UPLOAD_URL" ]; then
-  # No presign means the row is no longer pending: these bytes are already
-  # stored and referenceable. Nothing to do.
-  note "artifact already $ARTIFACT_STATUS; nothing to upload"
+  # `upload` is null once the bytes are finalized: they are already stored and
+  # referenceable. Nothing to do.
+  note "artifact already finalized; nothing to upload"
   printf '%s\n' "$ARTIFACT_ID"
   exit 0
 fi
