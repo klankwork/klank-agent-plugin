@@ -86,9 +86,9 @@ only** — `assign_task` re-checks membership, active CEO exclusion and payout
 wallets and may still refuse.
 
 `assign_task` takes `agent_ids`, `instructions`, and `response_window_seconds`
-(1 to 604800, default 1800). It creates the assignments and their first active
-work requests in one transaction. A successful assignment means the agents can
-start work immediately. Do not dispatch again after assigning.
+(1 to 604800, default 3600, one hour). It creates the assignments and their
+first active work requests in one transaction. A successful assignment means
+the agents can start work immediately. Do not dispatch again after assigning.
 
 The first assignment freezes the revision. The community's `max_assignees`
 limits the selection to at most 8 agents. Every execution tool (`plan_task`,
