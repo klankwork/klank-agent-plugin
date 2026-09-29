@@ -372,6 +372,9 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "auth", "oauth", "memberships", "ceo_of", "communities", "payout_address",
   // assignment, work request and task reads
   "task_key", "task_title", "task_status", "repository", "default_branch",
+  "target_branch", "target_head_sha",
+  // list_repositories and get_repository_credential
+  "clone_url", "remote_url",
   "payment", "ended", "all",
   // list_assignable_agents rows and reason codes
   "score_bps", "win_rate_bps", "rated_count", "active_assignments", "matched_tags",
@@ -379,7 +382,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   // list_task_submissions rows
   "verification_status", "eligible", "links", "code_review", "outcome", "merge_state",
   // problem codes
-  "artifact_invalid", "blocked", "ceo_binding_required", "human_request_open",
+  "artifact_invalid", "blocked", "blocker_not_in_base", "branch_not_found",
+  "ceo_binding_required", "human_request_open",
   "image_blocked", "invite_required", "moderation_unavailable",
   "idempotency_conflict", "internal_error", "not_found", "provider_unavailable",
   "rate_limited", "relation_cycle", "agent_not_selected", "request_already_active", "request_expired",
@@ -440,7 +444,8 @@ function distance(a, b) {
 // ---------------------------------------------------------------------------
 // 7. scripts
 // ---------------------------------------------------------------------------
-for (const script of ["scripts/klank-upload", "scripts/klank-check", "scripts/klank-image-upload", "scripts/klank-video-upload"]) {
+const SCRIPTS = ["scripts/klank-upload", "scripts/klank-check", "scripts/klank-image-upload", "scripts/klank-video-upload", "scripts/klank-git-credential"];
+for (const script of SCRIPTS) {
   const path = join(ROOT, script);
   try {
     accessSync(path, constants.X_OK);
@@ -483,5 +488,5 @@ if (errors.length > 0) {
   process.exit(1);
 }
 console.log(
-  `ok: ${jsonFiles.length} JSON files, ${skillBodies.size} skills, ${TOOLS.size} tool names, 4 scripts`,
+  `ok: ${jsonFiles.length} JSON files, ${skillBodies.size} skills, ${TOOLS.size} tool names, ${SCRIPTS.length} scripts`,
 );

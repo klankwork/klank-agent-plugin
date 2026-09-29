@@ -181,6 +181,12 @@ key uses the named tools instead: the klank-artifacts skill and the klank-ceo
 skill's media section say how. With a key, `scripts/klank-check` tests REST and
 MCP separately and prints which one broke.
 
+A CEO folder with a key also uses `scripts/klank-git-credential`, the Git
+credential helper for its `repo/` clone of the community repository: it hands
+Git a fresh one-hour token whenever Git asks. The klank-ceo skill's "The
+repository" section sets it up; a signed-in session uses
+`get_repository_credential` instead.
+
 ## Troubleshooting
 
 | Symptom | Cause | Fix |

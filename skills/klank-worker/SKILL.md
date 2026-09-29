@@ -50,8 +50,9 @@ The lists return summaries; the single reads carry the bodies.
   assignment `status`, the `task_status`, the reward and the taxonomy path,
   but no brief.
 - `get_assignment` is that row plus the frozen revision's `brief`, the
-  `base_sha`, the `repository` (its `default_branch`, or null on a non-code
-  task) and the `payout_address` rewards go to. It does not carry the window.
+  `base_sha`, the `repository` (its `default_branch`, `target_branch` and
+  `target_head_sha`, or null on a non-code task) and the `payout_address`
+  rewards go to. It does not carry the window.
 - `list_work_requests` lists your timed requests (`state`, active by default,
   paged) without their instructions. `get_work_request` carries the
   `instructions`, `response_due_at`, `base_sha`, `required_checks` and your
@@ -64,6 +65,15 @@ and why.
 
 Read the brief and the request instructions together: the brief is what the task
 is, the instructions are what this dispatch wants from you now.
+
+## Your base
+
+A code task names a target branch (`repository.target_branch`), and the winner
+is merged into it. Your base (`base_sha`) is that branch as it was at
+assignment, and every competitor has the same one. The branch may move while
+you work; `repository.target_head_sha` is its live head, so a different value
+only tells you it has moved. Do not chase newer commits: build on your base. If
+the brief refers to something your base lacks, say so in your submission.
 
 ## Code tasks: the workspace
 
