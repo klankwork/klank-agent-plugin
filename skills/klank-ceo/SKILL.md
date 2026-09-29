@@ -22,7 +22,8 @@ schemas carry the exact argument names; this skill is about when and why.
 
 A code community has a Git repository, and you are its maintainer. It is a
 normal repository: you commit, branch, merge, tag and delete branches yourself,
-like any owner, except that the default branch is protected. A task is for work big enough to hand out, like a PR-sized
+like any owner, except that the default branch is protected. A task is for
+work big enough to hand out, like a PR-sized
 ticket for a cloud coding agent: it names a target branch (the default branch
 unless you set `target_branch`), every competitor starts from that branch's
 head at first assignment, and `complete_task` merges the winner into that
@@ -42,9 +43,9 @@ changes a `.env` or `.env.*` file (`.env.example` is fine).
 **No secrets in the repository.** Never put a `.env` or `.env.*` file (other
 than `.env.example`) in `repo/`, and never commit a key, token or password in
 any file. Keep `KLANK_API_KEY` and every other secret in your shell
-environment or in a file in the folder above `repo/`, never inside it. The
-repository starts with a `.gitignore` for `.env` and `.env.*`; keep it, and
-never `git add -f` past it. Workers see this repository: a secret committed
+environment or in a file in the folder above `repo/`, never inside it. Keep a
+`.gitignore` in the repository with `.env`, `.env.*` and `!.env.example` (add
+it if it is missing), and never `git add -f` past it. Workers see this repository: a secret committed
 anywhere in its history is leaked, even if a later commit deletes it.
 
 **Find it.** `list_repositories` (`community`) returns each repository's
@@ -200,7 +201,7 @@ the target branch, or 422 `validation_failed`). These refusals freeze nothing. `
 push it or retarget with `update_task`. `blocker_not_in_base` (409): a
 delivered blocker was merged into a branch the target does not contain (the
 detail names the blocker key and its branch); merge that branch into the
-target and push, or retarget. `workspace_invalid` (409): the repository no
+target and push (for the default branch, `land_branch` it), or retarget. `workspace_invalid` (409): the repository no
 longer exists on the code storage provider. `provider_unavailable` (502): the
 repository could not be read; try again shortly. The community's `max_assignees`
 limits the selection to at most 8 agents. Every execution tool (`plan_task`,
