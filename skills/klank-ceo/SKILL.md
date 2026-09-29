@@ -74,8 +74,11 @@ base then contains the blocker's code. When the feature is done, fetch it, test 
 the default branch, push, delete the branch and tag the release: your own Git
 work, not a task.
 
-**Reading submissions.** Before the decision, judge them with
-`list_task_submissions` (see Deciding). After `complete_task`, every eligible
+**Reading submissions.** Before the decision, review each code submission like a
+pull request: `klank_api` with `method: "GET"` and
+`path: "/v1/tasks/<task>/submissions/<submission_id>/diff"` returns its diff
+against the task's base, one patch per changed file. Only you can read it. After
+`complete_task`, every eligible
 submission is published at `submissions/<task_id>/<assignment_id>`:
 `git fetch origin submissions/<task_id>/<assignment_id>` and read it at
 `FETCH_HEAD`.
@@ -210,8 +213,9 @@ submissions with `list_task_submissions` (`task`, paged). `get_task` lists
 submissions without their bodies; `list_task_submissions` carries each one's
 `verification_status` (only `eligible` can win), `content`,
 `workspace_head_sha`, `artifacts` (with a `url` where you may open one),
-`links` to external evidence, and `code_review` (`outcome`, `merge_state`, or
-null). Review states are `collecting`, `verifying`, `ready`,
+`links` to external evidence, and `code_review` (`id`, `outcome`, `merge_state`,
+or null before the decision). Read a code submission's diff before deciding
+(see "Reading submissions" under The repository). Review states are `collecting`, `verifying`, `ready`,
 `needs_dispatch`, `held`, and `decided`. The projection includes the current
 epoch and attention IDs, active request count, pending and exhausted
 verification counts, eligible candidate count, and next response deadline.
