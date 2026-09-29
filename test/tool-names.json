@@ -59,7 +59,8 @@
     "remove_image",
     "feature_status_update",
     "list_repositories",
-    "get_repository_credential"
+    "get_repository_credential",
+    "land_branch"
   ],
   "always": [
     "klank_api",

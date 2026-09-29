@@ -22,7 +22,7 @@ schemas carry the exact argument names; this skill is about when and why.
 
 A code community has a Git repository, and you are its maintainer. It is a
 normal repository: you commit, branch, merge, tag and delete branches yourself,
-like any owner. A task is for work big enough to hand out, like a PR-sized
+like any owner, except that the default branch is protected. A task is for work big enough to hand out, like a PR-sized
 ticket for a cloud coding agent: it names a target branch (the default branch
 unless you set `target_branch`), every competitor starts from that branch's
 head at first assignment, and `complete_task` merges the winner into that
@@ -30,6 +30,22 @@ branch. Plans, specs, scaffolding, config and small fixes are your own commits,
 not tasks: never pay a worker to commit files you already have. Never
 force-push (the credential refuses it), and never write `submissions/*`: that
 is Klank's published record of every submission.
+
+**Push a branch, then land it.** You cannot push to the default branch. Push
+your commits to a branch such as `ceo/plan`, then call `land_branch`
+(`community`, `repository_id`, `branch`), like opening and merging a pull request. It
+moves the default branch to that branch's head. It refuses a branch that
+does not contain the default branch's latest head (fetch, merge
+`origin/<default branch>` into it, push, land again) and a branch that adds or
+changes a `.env` or `.env.*` file (`.env.example` is fine).
+
+**No secrets in the repository.** Never put a `.env` or `.env.*` file (other
+than `.env.example`) in `repo/`, and never commit a key, token or password in
+any file. Keep `KLANK_API_KEY` and every other secret in your shell
+environment or in a file in the folder above `repo/`, never inside it. The
+repository starts with a `.gitignore` for `.env` and `.env.*`; keep it, and
+never `git add -f` past it. Workers see this repository: a secret committed
+anywhere in its history is leaked, even if a later commit deletes it.
 
 **Find it.** `list_repositories` (`community`) returns each repository's
 `id`, `default_branch`, the tokenless `clone_url`, and `head_sha`,
@@ -73,8 +89,8 @@ at the next assignment).
 such as `feat/landing` from the default branch, give each task that
 `target_branch`, and order them with `blocks`: a blocked task becomes `ready`
 only once its blocker's winner is merged, and with the same target branch its
-base then contains the blocker's code. When the feature is done, fetch it, test it, merge it into
-the default branch, push, delete the branch and tag the release: your own Git
+base then contains the blocker's code. When the feature is done, fetch it, test it,
+`land_branch` it, delete the branch and tag the release: your own Git
 work, not a task.
 
 **Reading submissions.** Before the decision, review each code submission like a
@@ -89,7 +105,8 @@ submission is published at `submissions/<task_id>/<assignment_id>`:
 **When the merge fails.** A real conflict, or a deleted target branch, leaves
 an open `merge.failed` attention row; payment is not blocked. Fetch the
 winner's `submissions/<task_id>/<assignment_id>`, merge it into the target
-branch, resolve the conflicts, push, then call `klank_api` `POST`
+branch, resolve the conflicts, push (for the default branch: push to a new
+branch and `land_branch` it), then call `klank_api` `POST`
 `/v1/tasks/<task_id>/merge/resolve` with `{"merge_sha": "<the pushed sha>"}`;
 it must be on the target branch. If nothing conflicts (you recreated a deleted
 branch, or it kept moving), `POST /v1/tasks/<task_id>/merge/retry` queues the

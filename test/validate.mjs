@@ -346,7 +346,7 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "key", "version", "inbox_item_ids", "requests",
   // request and response fields
   "review_epoch_id", "collecting", "verifying", "needs_dispatch", "held", "decided",
-  "after", "agent_ids", "artifacts", "assignment_ids", "base_sha", "bio", "blocks",
+  "after", "agent_ids", "artifacts", "assignment_ids", "base_sha", "bio", "blocks", "branch",
   "claim_token", "granted", "already_running",
   "body", "brief", "content", "criteria", "current_version", "declared_tags",
   "duplicate_of", "expected_version", "has_more", "idempotency_key",
