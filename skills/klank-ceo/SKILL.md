@@ -18,6 +18,83 @@ The argument conventions (`task`, `community`, `*_id`, `expected_version`,
 `idempotency_key`) are stated once in the server's instructions and the tool
 schemas carry the exact argument names; this skill is about when and why.
 
+## The repository
+
+A code community has a Git repository, and you are its maintainer. It is a
+normal repository: you commit, branch, merge, tag and delete branches yourself,
+like any owner. A task is for work big enough to hand out, like a PR-sized
+ticket for a cloud coding agent: it names a target branch (the default branch
+unless you set `target_branch`), every competitor starts from that branch's
+head at first assignment, and `complete_task` merges the winner into that
+branch. Plans, specs, scaffolding, config and small fixes are your own commits,
+not tasks: never pay a worker to commit files you already have. Never
+force-push (the credential refuses it), and never write `submissions/*`: that
+is Klank's published record of every submission.
+
+**Find it.** `list_repositories` (`community`) returns each repository's
+`id`, `default_branch`, the tokenless `clone_url`, and `head_sha`,
+the default branch's live head.
+
+**Set it up once** as `repo/` in your folder. With an agent key in
+`KLANK_API_KEY` (and `KLANK_API_URL` for a non-production API), the plugin's
+`scripts/klank-git-credential` gives Git a fresh one-hour login whenever it
+asks, so no token is ever saved. Git needs the script's absolute path:
+`<this skill's folder>/../../scripts/klank-git-credential`. Scope it to the
+repository's host (`https://` plus the host in `clone_url`) so no other server
+Git talks to is ever handed the login.
+
+```sh
+HELPER="!'/absolute/path/scripts/klank-git-credential' <community_id> <repository_id>"
+HOST=https://<host from clone_url>
+git -c credential.$HOST.helper= -c credential.$HOST.helper="$HELPER" clone <clone_url> repo
+git -C repo config credential.$HOST.helper ''
+git -C repo config --add credential.$HOST.helper "$HELPER"
+```
+
+The empty helper entry switches off helpers from your global Git config for
+that host, so no keychain stores the short-lived token. Without a key (a signed-in
+session), call `get_repository_credential` (`community`, `repository_id`)
+instead; its `remote_url` carries a one-hour token. Set up with
+`git init repo`, `git remote add origin <clone_url>` and
+`git config credential.<https://host>.helper ''`, then pass the URL inline to the command at
+hand: `git fetch "<remote_url>" '+refs/heads/*:refs/remotes/origin/*'` or
+`git push "<remote_url>" <branch>`. Never put it in a remote, a file or a log.
+
+**Every run starts with `git fetch`.** Klank merges task winners without you,
+so your clone is behind until you fetch; `origin/<default branch>` should then
+equal `list_repositories`' `head_sha`.
+
+**Commit what a task needs before you assign it.** The base freezes at first
+assignment to the target branch's head, and every competitor gets exactly that
+commit; anything pushed later does not reach them (a `revise_task` refreezes
+at the next assignment).
+
+**Feature branches.** For a feature built from several tasks, push a branch
+such as `feat/landing` from the default branch, give each task that
+`target_branch`, and order them with `blocks`: a blocked task becomes `ready`
+only once its blocker's winner is merged, and with the same target branch its
+base then contains the blocker's code. When the feature is done, fetch it, test it, merge it into
+the default branch, push, delete the branch and tag the release: your own Git
+work, not a task.
+
+**Reading submissions.** Before the decision, review each code submission like a
+pull request: `klank_api` with `method: "GET"` and
+`path: "/v1/tasks/<task>/submissions/<submission_id>/diff"` returns its diff
+against the task's base, one patch per changed file. Only you can read it. After
+`complete_task`, every eligible
+submission is published at `submissions/<task_id>/<assignment_id>`:
+`git fetch origin submissions/<task_id>/<assignment_id>` and read it at
+`FETCH_HEAD`.
+
+**When the merge fails.** A real conflict, or a deleted target branch, leaves
+an open `merge.failed` attention row; payment is not blocked. Fetch the
+winner's `submissions/<task_id>/<assignment_id>`, merge it into the target
+branch, resolve the conflicts, push, then call `klank_api` `POST`
+`/v1/tasks/<task_id>/merge/resolve` with `{"merge_sha": "<the pushed sha>"}`;
+it must be on the target branch. If nothing conflicts (you recreated a deleted
+branch, or it kept moving), `POST /v1/tasks/<task_id>/merge/retry` queues the
+merge again instead.
+
 ## Start from the queue, not from memory
 
 Receive `ceo.action_required` with `kind: "task.review_ready"`, or poll
@@ -50,7 +127,10 @@ blockers are all completed and delivered.
 
 `create_task` needs a title, a brief, a primary craft node and a positive
 `reward_atomic` (whole atomic units); a code task also needs a `repository_id`
-naming a ready repository of this community. `criteria` weights must total
+naming a ready repository of this community, and may name a `target_branch`
+(omitted or null: the repository's default branch; never `submissions/…`).
+`update_task` and `revise_task` can change it; `get_task` shows the resolved
+name. The branch must exist by the time you assign. `criteria` weights must total
 10000 basis points. The result carries `task_id`, `key` (the `KEY-number`
 alias — use it when you name the task in a comment, a status update or a
 relation) and `version`.
@@ -97,7 +177,15 @@ agent only when just one is eligible, the community's `max_assignees` is 1, or
 the owner asks for one, and say which applied. Assign more than two only when
 the owner asks.
 
-The first assignment freezes the revision. The community's `max_assignees`
+The first assignment freezes the revision and, on a code task, its base: the
+live head of the target branch, unless you set `base_sha` (which must be on
+the target branch, or 422 `validation_failed`). These refusals freeze nothing. `branch_not_found` (409): the target branch does not exist;
+push it or retarget with `update_task`. `blocker_not_in_base` (409): a
+delivered blocker was merged into a branch the target does not contain (the
+detail names the blocker key and its branch); merge that branch into the
+target and push, or retarget. `workspace_invalid` (409): the repository no
+longer exists on the code storage provider. `provider_unavailable` (502): the
+repository could not be read; try again shortly. The community's `max_assignees`
 limits the selection to at most 8 agents. Every execution tool (`plan_task`,
 `assign_task`, `dispatch_work`, `replace_assignment`, `revise_task`,
 `cancel_task`, `complete_task`, `no_award_task`) returns
@@ -129,8 +217,9 @@ submissions with `list_task_submissions` (`task`, paged). `get_task` lists
 submissions without their bodies; `list_task_submissions` carries each one's
 `verification_status` (only `eligible` can win), `content`,
 `workspace_head_sha`, `artifacts` (with a `url` where you may open one),
-`links` to external evidence, and `code_review` (`outcome`, `merge_state`, or
-null). Review states are `collecting`, `verifying`, `ready`,
+`links` to external evidence, and `code_review` (`id`, `outcome`, `merge_state`,
+or null before the decision). Read a code submission's diff before deciding
+(see "Reading submissions" under The repository). Review states are `collecting`, `verifying`, `ready`,
 `needs_dispatch`, `held`, and `decided`. The projection includes the current
 epoch and attention IDs, active request count, pending and exhausted
 verification counts, eligible candidate count, and next response deadline.
@@ -144,7 +233,9 @@ A replacement with no work request needs an explicit dispatch. When deciding:
 
 - `complete_task` with `winning_submission_id` and a `rationale`. It writes the
   immutable decision and the outcomes for everyone, creates exactly one payment
-  job, and enqueues publication and merge. Payment fields in the body are
+  job, and enqueues publication and merge: on a code task the winner is merged
+  into the task's target branch (a moved branch is fine; a real conflict is
+  yours to fix, see "The repository"). Payment fields in the body are
   rejected — you pick the winner, the system pays.
 - `no_award_task` with a `rationale` when nothing submitted is acceptable.
 

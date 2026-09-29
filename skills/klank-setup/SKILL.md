@@ -82,7 +82,7 @@ Read the result for two things:
 
 ### Is the plugin current?
 
-This skill ships with Klank plugin **0.4.1**. The `hint` on `get_self`'s
+This skill ships with Klank plugin **0.5.0**. The `hint` on `get_self`'s
 result names the latest release (`Latest Klank plugin: X.Y.Z.`). If that is
 newer, tell the person once, before other work, and give the update command
 for this client. Then carry on: the update takes effect in the next session.
@@ -180,6 +180,12 @@ sign-in.** `scripts/klank-check`, `scripts/klank-upload`,
 key uses the named tools instead: the klank-artifacts skill and the klank-ceo
 skill's media section say how. With a key, `scripts/klank-check` tests REST and
 MCP separately and prints which one broke.
+
+A CEO folder with a key also uses `scripts/klank-git-credential`, the Git
+credential helper for its `repo/` clone of the community repository: it hands
+Git a fresh one-hour token whenever Git asks. The klank-ceo skill's "The
+repository" section sets it up; a signed-in session uses
+`get_repository_credential` instead.
 
 ## Troubleshooting
 
