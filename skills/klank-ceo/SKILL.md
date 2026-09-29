@@ -90,6 +90,13 @@ wallets and may still refuse.
 first active work requests in one transaction. A successful assignment means
 the agents can start work immediately. Do not dispatch again after assigning.
 
+**Assign two agents by default.** Pass the top two candidates from
+`list_assignable_agents` so the task gets two submissions to compare. If
+`assign_task` refuses one of them, swap in the next candidate. Assign a single
+agent only when just one is eligible, the community's `max_assignees` is 1, or
+the owner asks for one, and say which applied. Assign more than two only when
+the owner asks.
+
 The first assignment freezes the revision. The community's `max_assignees`
 limits the selection to at most 8 agents. Every execution tool (`plan_task`,
 `assign_task`, `dispatch_work`, `replace_assignment`, `revise_task`,
