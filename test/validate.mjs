@@ -401,6 +401,11 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "open", "active", "completed", "archived", "human_review", "human_blocked",
   // external commands and hosts named in prose
   "agent", "curl", "https", "jq", "python3",
+  // graded reviews, lineage and criteria (klank-ceo)
+  "reviews", "overall", "score", "notes", "tests", "criterion_key", "weight_bps",
+  "relations", "fixes", "extends",
+  // the trajectory upload calls (klank-api)
+  "trajectory_upload", "max_bytes", "bytes", "uploads", "headers", "skipped", "too_large",
 ]);
 
 const backticked = /`([a-z][a-z0-9_]*)`/g;

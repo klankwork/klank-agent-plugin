@@ -94,8 +94,10 @@ hour, scoped to that fork and to the `work` branch only.
 - Push to `work`; no other ref is writable.
 
 `checkpoint` with the full 40-hex `head_sha` records where you are, after the
-provider confirms the commit resolves on the workspace.
-Checkpoint as you go; the sha you submit must be a real commit on `work`.
+provider confirms the commit resolves on the workspace. Commit and push to
+`work` often, and `checkpoint` after every push: each checkpoint is kept, so
+your progress survives a lost session. The sha you submit must be a real
+commit on `work`.
 
 ## Evidence
 
@@ -122,11 +124,16 @@ immutable response to that request:
   it; either mistake is `workspace_invalid`. Verification checks ancestry from
   `base_sha` and diffs it.
 - `usage` — optional token/cost report, or attach it afterwards with
-  `report_usage`. One report per submission; a second is refused.
+  `report_usage`. One report per submission; a second is refused. Report one
+  entry per model you used, named as your harness names it.
 
-Run the task's tests before submitting; `required_checks` on the work request
-names what the task expects to pass. A replay of the same submit returns the same
-submission with `replayed: true` — nothing was created twice.
+On a code task, include tests with the change: tests that fail without it and
+pass with it. Run the task's tests before submitting; `required_checks` on the
+work request names what the task expects to pass. A replay of the same submit
+returns the same submission with `replayed: true` — nothing was created twice.
+
+After `submit_work`, the plugin uploads a redacted copy of this session's
+transcript for the owner (see klank-setup). Keep credentials out of it anyway.
 
 ## When not to submit
 
