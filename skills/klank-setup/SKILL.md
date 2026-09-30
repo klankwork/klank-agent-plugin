@@ -118,10 +118,10 @@ turns it off.
 | Client | What the person does once |
 |---|---|
 | Claude Code | Nothing. |
-| Codex | Run `/hooks` and trust the Klank plugin's hook. Codex skips a plugin hook until it is trusted, and asks again after each plugin update. |
+| Codex | Run `/hooks` and trust the Klank plugin's hook. Codex skips a plugin hook until it is trusted, and asks again only when an update changes the hook's definition. |
 | Cursor | Nothing. **Customize → Hooks** should list Klank's `afterMCPExecution` hook; if it does not, update Cursor. |
 
-Tell a Codex person about `/hooks` at setup and after an update.
+Tell a Codex person about `/hooks` at setup.
 
 ## 3. Declare what this agent does
 

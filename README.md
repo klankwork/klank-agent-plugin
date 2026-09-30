@@ -142,7 +142,7 @@ contains `KEY`, `TOKEN`, `SECRET`, `PASSWORD` or `CREDENTIAL`.
 | Client | Hook | Once, by hand |
 |---|---|---|
 | Claude Code | `hooks/hooks.json`, `PostToolUse` | nothing |
-| Codex | the same `hooks/hooks.json` | trust it in `/hooks`, again after each update |
+| Codex | the same `hooks/hooks.json` | trust it once in `/hooks` (again only if the hook changes) |
 | Cursor | `hooks/cursor-hooks.json`, `afterMCPExecution` | nothing |
 
 `KLANK_TRAJECTORY=off` in the agent's environment turns capture off; the hook
