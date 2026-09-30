@@ -1,0 +1,369 @@
+#!/usr/bin/env python3
+# klank-trajectory — upload this session's transcript after a Klank submission
+# or decision.
+#
+# The plugin's hooks run it after `submit_work`, `complete_task` and
+# `no_award_task` with the hook's JSON on stdin. The tool result carries a
+# single-use `trajectory_upload` token. The script copies each transcript file,
+# redacts secrets in the copy, gzips it, and uploads it:
+#
+#   POST <api>/v1/trajectory-uploads/<token>           declare files, get presigned PUTs
+#   PUT  <presigned url> with exactly the returned headers, one per file
+#   POST <api>/v1/trajectory-uploads/<token>/complete  redaction version and counts
+#
+# The upload runs in a detached child; the hook itself exits 0 at once. Every
+# failure ends in exit 0, so a hook never fails the tool call.
+#
+# Environment:
+#   KLANK_TRAJECTORY=off   capture is off: exit before reading anything
+#   KLANK_API_URL          the API the token came from (default: the URL in the
+#                          plugin's .mcp.json without /mcp, else https://api.klank.fun)
+#   KLANK_TRAJECTORY_LOG   optional file the upload appends one line per step to
+#
+# Python 3 standard library only.
+
+import gzip
+import hashlib
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+import urllib.error
+import urllib.request
+
+VERSION = "0.7.0"
+REDACTION_VERSION = "klank-redact-1"
+TOOLS = {"submit_work", "complete_task", "no_award_task"}
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MAX_FILES = 50
+SETTLE_SECONDS = 2  # the harness writes the transcript asynchronously; let the current turn land
+ATTEMPTS = 3
+SENSITIVE_ENV = ("KEY", "TOKEN", "SECRET", "PASSWORD", "CREDENTIAL")
+NOT_SECRET = {"true", "false", "none", "null", "undefined"}
+
+# (kind, pattern, replacement). A replacement keeps a named context group and
+# swaps the secret for [REDACTED:<kind>].
+PATTERNS = [
+    ("pem", r"-----BEGIN ([A-Z0-9 ]{1,40})-----.*?-----END \1-----", None),
+    ("jwt", r"\beyJ[A-Za-z0-9_-]{5,}\.eyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{10,}", None),
+    ("anthropic_key", r"\bsk-ant-[A-Za-z0-9_-]{20,}", None),
+    ("openai_key", r"\bsk-(?:proj|svcacct|admin)-[A-Za-z0-9_-]{20,}|\bsk-[A-Za-z0-9]{32,}", None),
+    ("provider_api_key", r"\bsk-or-v1-[A-Za-z0-9]{32,}|\bgsk_[A-Za-z0-9]{40,}|\bxai-[A-Za-z0-9]{40,}|\bhf_[A-Za-z0-9]{30,}", None),
+    ("google_api_key", r"\bAIza[0-9A-Za-z_-]{35}", None),
+    ("stripe_key", r"\b(?:sk|rk)_(?:live|test)_[A-Za-z0-9]{16,}", None),
+    ("github_token", r"\bgh[pousr]_[A-Za-z0-9]{36,}|\bgithub_pat_[A-Za-z0-9_]{22,}", None),
+    ("aws_access_key", r"\b(?:AKIA|ASIA)[0-9A-Z]{16}\b", None),
+    ("aws_secret_key", r"(?i)(?P<k>aws_?secret_?access_?key\W{1,8})[A-Za-z0-9/+]{40}", "k"),
+    ("slack_token", r"\bxox[abposr]-[A-Za-z0-9-]{10,}|https://hooks\.slack\.com/services/[A-Za-z0-9/_-]+", None),
+    ("klank_key", r"\bklank_(?:agent|oat|ort|dev)_[A-Za-z0-9_-]{8,}", None),
+    ("presigned_signature",
+     r"(?i)(?P<k>(?<=[?&])(?:X-Amz-Signature|X-Amz-Credential|X-Amz-Security-Token|"
+     r"X-Goog-Signature|X-Goog-Credential|Signature|sig)=)[^&\s\"'\\<>]+", "k"),
+    ("trajectory_token", r"(?P<k>/trajectory-uploads/)[A-Za-z0-9_-]{20,}", "k"),
+    ("trajectory_token", r"(?P<k>\\*\"token\\*\"\s*:\s*\\*\")[A-Za-z0-9_-]{32,}", "k"),
+    ("url_credential", r"(?P<k>\bhttps?://[^/\s:@\"'\\]+:)[^@\s/\"'\\]+(?=@)", "k"),
+    ("bearer_token", r"(?P<k>\b[Bb]earer\s+)[A-Za-z0-9._~+/=-]{16,}", "k"),
+]
+
+
+def compile_rules(env, token=None):
+    """The redaction rules for this run: exact values first, then shapes."""
+    rules = []
+    if token:
+        rules.append(("trajectory_token", re.compile(re.escape(token)), None))
+    values = sorted(
+        {v for k, v in env.items()
+         if any(s in k.upper() for s in SENSITIVE_ENV) and len(v) >= 8 and v.lower() not in NOT_SECRET},
+        key=len, reverse=True,
+    )
+    if values:
+        rules.append(("env_secret", re.compile("|".join(re.escape(v) for v in values)), None))
+    for kind, pattern, keep in PATTERNS:
+        rules.append((kind, re.compile(pattern, re.DOTALL), keep))
+    return [(kind, regex, _replacement(kind, keep)) for kind, regex, keep in rules]
+
+
+def _replacement(kind, keep):
+    mark = "[REDACTED:%s]" % kind
+    return (lambda m: m.group(keep) + mark) if keep else mark
+
+
+def redact_line(line, rules, counts):
+    for kind, regex, repl in rules:
+        line, n = regex.subn(repl, line)
+        if n:
+            counts[kind] = counts.get(kind, 0) + n
+    return line
+
+
+def redact_file(src, dest, rules, counts):
+    """Write a gzipped, redacted copy of src to dest. The source is never modified."""
+    with open(src, "rb") as fin, gzip.open(dest, "wb", compresslevel=6) as fout:
+        for raw in fin:
+            line = raw.decode("utf-8", "surrogateescape")
+            fout.write(redact_line(line, rules, counts).encode("utf-8", "surrogateescape"))
+
+
+def find_capability(value, depth=0):
+    """`trajectory_upload` wherever the harness put the tool result.
+
+    Claude Code passes content blocks or the structured result, Codex the MCP
+    call result, Cursor a JSON string (`result_json`); the MCP result holds
+    `{data: ...}` in `structuredContent` and as JSON text in `content[0].text`.
+    """
+    if depth > 8:
+        return None
+    if isinstance(value, str):
+        text = value.strip()
+        if text[:1] in ("{", "["):
+            try:
+                return find_capability(json.loads(text), depth + 1)
+            except ValueError:
+                return None
+        return None
+    if isinstance(value, dict):
+        cap = value.get("trajectory_upload")
+        if isinstance(cap, dict) and isinstance(cap.get("token"), str) and cap["token"]:
+            return cap
+        value = list(value.values())
+    if isinstance(value, list):
+        for item in value:
+            found = find_capability(item, depth + 1)
+            if found:
+                return found
+    return None
+
+
+def transcript_files(path):
+    """The session transcript plus Claude Code's subagent transcripts.
+
+    Claude Code keeps a session at <dir>/<session>.jsonl and its subagents at
+    <dir>/<session>/subagents/agent-<id>.jsonl. A hook fired inside a subagent
+    points at the subagent's file, so walk back to the session from there.
+    """
+    if not path:
+        return []
+    path = os.path.expanduser(path)
+    parent = os.path.dirname(path)
+    if os.path.basename(parent) == "subagents":
+        session_dir = os.path.dirname(parent)
+        main = session_dir + os.path.splitext(path)[1]
+    else:
+        main = path
+        session_dir = os.path.splitext(path)[0]
+    files = [main] if os.path.isfile(main) else []
+    subagents = os.path.join(session_dir, "subagents")
+    if os.path.isdir(subagents):
+        files += sorted(os.path.join(subagents, n) for n in os.listdir(subagents) if n.endswith(".jsonl"))
+    if path not in files and os.path.isfile(path):
+        files.append(path)
+    return files[:MAX_FILES]
+
+
+def detect_harness(event):
+    if "cursor_version" in event or event.get("hook_event_name") == "afterMCPExecution":
+        return "cursor"
+    if "turn_id" in event or "PLUGIN_ROOT" in os.environ:
+        return "codex"
+    return "claude_code"
+
+
+def harness_version(event, path):
+    if event.get("cursor_version"):
+        return str(event["cursor_version"])[:100]
+    try:
+        with open(path, "rb") as f:
+            head = f.read(65536).decode("utf-8", "replace")
+        m = re.search(r'"(?:cli_)?version"\s*:\s*"([^"]{1,100})"', head)
+        if m:
+            return m.group(1)
+    except OSError:
+        pass
+    return "unknown"
+
+
+def api_base():
+    url = os.environ.get("KLANK_API_URL", "")
+    if not url:
+        try:
+            with open(os.path.join(ROOT, ".mcp.json")) as f:
+                url = re.sub(r"/mcp/?$", "", json.load(f)["mcpServers"]["klank"]["url"])
+        except (OSError, ValueError, KeyError, TypeError):
+            url = "https://api.klank.fun"
+    return url.rstrip("/")
+
+
+def plan(event):
+    """The upload job for a hook event, or None when there is nothing to do."""
+    tool = str(event.get("tool_name") or "")
+    if re.split(r"__|:", tool)[-1] not in TOOLS:
+        return None
+    cap = find_capability(event.get("tool_response", event.get("result_json")))
+    if not cap:
+        return None
+    files = transcript_files(event.get("transcript_path") or os.environ.get("CURSOR_TRANSCRIPT_PATH"))
+    if not files:
+        return None
+    harness = detect_harness(event)
+    return {
+        "api": api_base(),
+        "token": cap["token"],
+        "files": files,
+        "harness": harness,
+        "cursor_version": event.get("cursor_version"),
+    }
+
+
+def detach(job):
+    """Hand the job to a child in its own session, so it outlives the hook."""
+    kwargs = {"stdin": subprocess.PIPE, "stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL, "close_fds": True}
+    if os.name == "nt":
+        kwargs["creationflags"] = getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    else:
+        kwargs["start_new_session"] = True
+    child = subprocess.Popen([sys.executable, os.path.abspath(__file__), "--upload"], **kwargs)
+    child.stdin.write(json.dumps(job).encode())
+    child.stdin.close()
+
+
+def log(message):
+    path = os.environ.get("KLANK_TRAJECTORY_LOG")
+    if path:
+        try:
+            with open(path, "a") as f:
+                f.write("%s klank-trajectory: %s\n" % (time.strftime("%Y-%m-%dT%H:%M:%S"), message))
+        except OSError:
+            pass
+
+
+def request(method, url, body=None, headers=None, upload=None):
+    """(status, body bytes), retrying network errors, 429 and 5xx a bounded number of times."""
+    for attempt in range(ATTEMPTS):
+        data = None
+        hdrs = dict(headers or {})
+        if body is not None:
+            data = json.dumps(body).encode()
+            hdrs.setdefault("Content-Type", "application/json")
+            hdrs.setdefault("Accept", "application/json")
+            hdrs.setdefault("User-Agent", "klank-trajectory/" + VERSION)
+        elif upload is not None:
+            data = open(upload, "rb")
+            hdrs["Content-Length"] = str(os.path.getsize(upload))
+        try:
+            req = urllib.request.Request(url, data=data, headers=hdrs, method=method)
+            with urllib.request.urlopen(req, timeout=300) as resp:
+                return resp.status, resp.read()
+        except urllib.error.HTTPError as err:
+            if err.code != 429 and err.code < 500:
+                return err.code, err.read()
+        except Exception:
+            pass
+        finally:
+            if upload is not None and data is not None:
+                data.close()
+        if attempt < ATTEMPTS - 1:
+            time.sleep(2 ** attempt)
+    return None, b""
+
+
+def payload(raw):
+    try:
+        doc = json.loads(raw)
+    except ValueError:
+        return {}
+    return doc.get("data", doc) if isinstance(doc, dict) else {}
+
+
+def upload_name(path, taken):
+    name = re.sub(r"[^A-Za-z0-9._-]", "_", os.path.basename(path)).lstrip("._-")[:190] or "transcript"
+    name += ".gz"
+    base, n = name, 1
+    while name in taken:
+        n += 1
+        name = "%d-%s" % (n, base)
+    taken.add(name)
+    return name
+
+
+def upload(job):
+    time.sleep(SETTLE_SECONDS)
+    work = tempfile.mkdtemp(prefix="klank-trajectory-")
+    try:
+        rules = compile_rules(os.environ, job["token"])
+        counts = {kind: 0 for kind, _, _ in rules}
+        declared, local, taken = [], {}, set()
+        for path in job["files"]:
+            name = upload_name(path, taken)
+            dest = os.path.join(work, name)
+            try:
+                redact_file(path, dest, rules, counts)
+            except OSError:
+                taken.discard(name)
+                continue
+            digest = hashlib.sha256()
+            with open(dest, "rb") as f:
+                for chunk in iter(lambda: f.read(1 << 20), b""):
+                    digest.update(chunk)
+            declared.append({"name": name, "bytes": os.path.getsize(dest), "sha256": digest.hexdigest()})
+            local[name] = dest
+        if not declared:
+            log("no readable transcript")
+            return
+        first = job["files"][0]
+        ext = "txt" if first.endswith(".txt") else "jsonl"
+        version = str(job.get("cursor_version") or "") or harness_version({}, first)
+        base = "%s/v1/trajectory-uploads/%s" % (job["api"], job["token"])
+        status, raw = request("POST", base, body={
+            "files": declared,
+            "harness": job["harness"],
+            "harness_version": version,
+            "format": "%s_%s" % (job["harness"], ext),
+        })
+        if status is None or not 200 <= status < 300:
+            log("start failed: HTTP %s" % status)
+            return
+        start = payload(raw)
+        for item in start.get("uploads") or []:
+            path = local.get(item.get("name"))
+            if not path or item.get("method", "PUT") != "PUT":
+                continue
+            status, _ = request("PUT", item["url"], headers=item.get("headers") or {}, upload=path)
+            if status is None or not 200 <= status < 300:
+                log("upload of %s failed: HTTP %s" % (item.get("name"), status))
+                return
+        for item in start.get("skipped") or []:
+            log("skipped %s (%s)" % (item.get("name"), item.get("reason")))
+        status, _ = request("POST", base + "/complete", body={
+            "redaction": {"version": REDACTION_VERSION, "counts": counts},
+        })
+        log("complete: HTTP %s, %d file(s)" % (status, len(declared)))
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
+def main():
+    if os.environ.get("KLANK_TRAJECTORY", "").strip().lower() == "off":
+        return
+    if sys.argv[1:] == ["--upload"]:
+        upload(json.load(sys.stdin))
+        return
+    try:
+        event = json.load(sys.stdin)
+    except ValueError:
+        return
+    if isinstance(event, dict):
+        job = plan(event)
+        if job:
+            detach(job)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except BaseException:  # a hook never fails the tool call
+        pass
+    sys.exit(0)
