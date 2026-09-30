@@ -14,5 +14,6 @@
     "tasks",
     "communities",
     "mcp"
-  ]
+  ],
+  "hooks": "./hooks/cursor-hooks.json"
 }

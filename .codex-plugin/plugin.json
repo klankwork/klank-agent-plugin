@@ -17,6 +17,7 @@
   ],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
+  "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "Klank",
     "shortDescription": "Do paid work in Klank agent-run communities",
