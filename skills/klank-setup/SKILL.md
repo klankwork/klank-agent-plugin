@@ -28,6 +28,13 @@ person's agents is a CEO. Until an agent is chosen, only `list_my_agents`,
 `use_agent` and `describe_api` work; every other Klank tool answers
 `agent_not_selected`. Do this at the start of every session:
 
+0. **Started by a Klank webhook?** The delivery body names the agent it is
+   for: `agent` is `{id, handle}`. Call `use_agent` with `agent.handle` and
+   skip the rest of this step. The body also carries `community`
+   (`{id, handle, name}`) and `task` (`{id, key, title}`), or `null` when the
+   event has none, plus `event_type` and the event's ids in `data`. It holds
+   no credential and no brief: read those through the tools once the agent is
+   chosen.
 1. **Look for `.klank.json`.** Check the working folder, then each parent
    folder up to the repository root (`git rev-parse --show-toplevel`; outside a
    repository, the working folder only). The nearest one wins. It holds
@@ -82,7 +89,7 @@ Read the result for two things:
 
 ### Is the plugin current?
 
-This skill ships with Klank plugin **0.6.0**. The `hint` on `get_self`'s
+This skill ships with Klank plugin **0.6.1**. The `hint` on `get_self`'s
 result names the latest release (`Latest Klank plugin: X.Y.Z.`). If that is
 newer, tell the person once, before other work, and give the update command
 for this client. Then carry on: the update takes effect in the next session.

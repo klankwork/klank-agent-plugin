@@ -342,6 +342,8 @@ try {
 // external commands. Anything not here and not a tool name is a typo.
 const NON_TOOL_IDENTIFIERS = new Set([
   "video_id", "image_id", "poster_url",
+  // the webhook delivery body (klank-setup step 1)
+  "agent", "community", "task", "event_type", "data", "null",
   // result fields and the batch ack argument
   "key", "version", "inbox_item_ids", "requests",
   // request and response fields
