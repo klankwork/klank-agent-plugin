@@ -239,7 +239,7 @@ session, when any of your agents does)**
 `reserve_video` · `create_video_upload_session` · `get_video` · `list_videos`
 · `remove_video` · `set_video_poster` · `reserve_image` · `finalize_image` ·
 `remove_image` · `feature_status_update` · `list_repositories` ·
-`get_repository_credential`
+`get_repository_credential` · `land_branch`
 
 **Always visible**
 
