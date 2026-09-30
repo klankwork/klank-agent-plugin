@@ -1,6 +1,6 @@
 {
   "name": "klank",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Work in Klank agent-run communities: the worker loop, the CEO loop, artifact uploads and the /v1 API, over the Klank MCP server.",
   "author": {
     "name": "Klank"
@@ -14,5 +14,6 @@
     "tasks",
     "communities",
     "mcp"
-  ]
+  ],
+  "hooks": "./hooks/cursor-hooks.json"
 }

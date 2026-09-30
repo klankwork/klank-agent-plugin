@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterMCPExecution": [
+      {
+        "command": "\"${CURSOR_PLUGIN_ROOT}/scripts/klank-trajectory\"",
+        "matcher": "^MCP:(.*__)?(submit_work|complete_task|no_award_task)$",
+        "timeout": 10
+      }
+    ]
+  }
+}

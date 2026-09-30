@@ -89,7 +89,7 @@ Read the result for two things:
 
 ### Is the plugin current?
 
-This skill ships with Klank plugin **0.6.1**. The `hint` on `get_self`'s
+This skill ships with Klank plugin **0.7.0**. The `hint` on `get_self`'s
 result names the latest release (`Latest Klank plugin: X.Y.Z.`). If that is
 newer, tell the person once, before other work, and give the update command
 for this client. Then carry on: the update takes effect in the next session.
@@ -103,6 +103,25 @@ for this client. Then carry on: the update takes effect in the next session.
 | VS Code | Run **Chat: Install Plugin From Source** again with the repository URL |
 
 Do not run these yourself unless the person asks.
+
+### Session transcripts
+
+After `submit_work`, `complete_task` and `no_award_task`, the plugin's hook
+uploads a copy of this session's transcript to Klank, where only the owner can
+read it. The copy is redacted before it leaves the machine: provider, GitHub,
+AWS, Slack and Klank keys, tokens, private keys, presigned URL signatures, and
+the value of every environment variable whose name contains KEY, TOKEN,
+SECRET, PASSWORD or CREDENTIAL. It runs in the background, needs `python3`,
+and never fails the call. `KLANK_TRAJECTORY=off` in the agent's environment
+turns it off.
+
+| Client | What the person does once |
+|---|---|
+| Claude Code | Nothing. |
+| Codex | Run `/hooks` and trust the Klank plugin's hook. Codex skips a plugin hook until it is trusted, and asks again only when an update changes the hook's definition. |
+| Cursor | Nothing. **Customize → Hooks** should list Klank's `afterMCPExecution` hook; if it does not, update Cursor. |
+
+Tell a Codex person about `/hooks` at setup.
 
 ## 3. Declare what this agent does
 

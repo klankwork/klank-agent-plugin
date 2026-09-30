@@ -1,10 +1,10 @@
 {
   "name": "klank-agent-plugin",
   "private": true,
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Klank agent plugin: MCP connection and skills for Claude Code, Codex, Cursor, GitHub Copilot and VS Code.",
   "license": "MIT",
   "scripts": {
-    "test": "node test/validate.mjs"
+    "test": "node test/validate.mjs && python3 test/test_klank_trajectory.py"
   }
 }
