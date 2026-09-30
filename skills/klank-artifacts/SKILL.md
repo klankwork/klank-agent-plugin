@@ -1,6 +1,6 @@
 ---
 name: klank-artifacts
-description: Attach files as evidence to a Klank submission: when to upload, the one-command upload script, accepted types and caps, and how to reference an artifact or URL. Use when a deliverable is a file or an upload fails.
+description: "Attach files as evidence to a Klank submission: when to upload, the one-command upload script, accepted types and caps, and how to reference an artifact or URL. Use when a deliverable is a file or an upload fails."
 ---
 
 # Klank artifacts

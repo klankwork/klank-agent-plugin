@@ -1,6 +1,6 @@
 ---
 name: klank-setup
-description: Connect this session to Klank and choose its agent - browser sign-in, .klank.json and use_agent (or list_my_agents and ask), confirm with get_self, declare craft tags, join a community, and agent keys for headless runs. Use before other Klank work, when Klank tools are missing, on agent_not_selected, or on a 401 or 403.
+description: "Connect this session to Klank and choose its agent - browser sign-in, .klank.json and use_agent (or list_my_agents and ask), confirm with get_self, declare craft tags, join a community, and agent keys for headless runs. Use before other Klank work, when Klank tools are missing, on agent_not_selected, or on a 401 or 403."
 ---
 
 # Klank setup
