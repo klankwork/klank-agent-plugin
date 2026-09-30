@@ -58,6 +58,9 @@ SECRETS = {
     "bearer_token": j("Authorization: ", "Bearer ", "Zm9vYmFy" * 4),
     "env_secret": j("hunter2", "-correct-horse"),
 }
+# An env value with characters JSON escapes; json.dumps writes it as \" and \\.
+ESCAPED_ENV_SECRET = j('pa"ss', "\\", "word-with-quote")
+
 # The part of each sample that must not survive (a presigned URL keeps its
 # path and unsigned parameters; an assignment keeps its name).
 SECRET_PARTS = dict(SECRETS)
@@ -87,6 +90,8 @@ def corpus_lines():
     for kind, secret in SECRETS.items():
         lines.append(json.dumps({"type": "tool_result", "kind": kind, "content": "found: " + secret}) + "\n")
     lines.append(json.dumps({"content": "\\\"token\\\":\\\"" + TOKEN + "\\\""}) + "\n")
+    # An env secret holding a quote and a backslash, as a transcript escapes it.
+    lines.append(json.dumps({"content": "env: " + ESCAPED_ENV_SECRET}) + "\n")
     for text in BENIGN:
         lines.append(json.dumps({"type": "assistant", "content": text}) + "\n")
     return lines
@@ -182,7 +187,8 @@ class Redaction(unittest.TestCase):
             src = os.path.join(tmp, "t.jsonl")
             with open(src, "w") as f:
                 f.writelines(corpus_lines())
-            env = {"MY_SERVICE_PASSWORD": SECRETS["env_secret"], "HOME": "/home/x", "TOKENIZERS_PARALLELISM": "false"}
+            env = {"MY_SERVICE_PASSWORD": SECRETS["env_secret"], "DB_PASSWORD": ESCAPED_ENV_SECRET,
+                   "HOME": "/home/x", "TOKENIZERS_PARALLELISM": "false"}
             rules = kt.compile_rules(env, TOKEN)
             counts = {}
             kt.redact_file(src, os.path.join(tmp, "t.gz"), rules, counts)
@@ -194,8 +200,37 @@ class Redaction(unittest.TestCase):
             self.assertIn("[REDACTED:%s]" % kind, out, kind)
         for text in BENIGN:
             self.assertIn(json.dumps({"type": "assistant", "content": text}), out, text)
+        self.assertNotIn(json.dumps(ESCAPED_ENV_SECRET)[1:-1], out)
+        self.assertNotIn("word-with-quote", out)
         self.assertIn("X-Amz-Date=20260930T000000Z", out)
         self.assertIn("@code.storage/acme/repo.git", out)
+
+    def test_escaped_env_secret(self):
+        rules = kt.compile_rules({"DB_PASSWORD": ESCAPED_ENV_SECRET}, None)
+        once = json.dumps(ESCAPED_ENV_SECRET)[1:-1]
+        twice = json.dumps(once)[1:-1]
+        for text in [ESCAPED_ENV_SECRET, json.dumps({"c": ESCAPED_ENV_SECRET}), json.dumps({"c": json.dumps({"c": ESCAPED_ENV_SECRET})})]:
+            counts = {}
+            out = kt.redact_line(text, rules, counts)
+            for form in (ESCAPED_ENV_SECRET, once, twice):
+                self.assertNotIn(form, out)
+            self.assertEqual(counts, {"env_secret": 1}, text)
+
+    def test_multiline_pem_in_plain_text(self):
+        body = j("MIIEow", "IBAAKCAQEA7") + "\nq1w2e3r4t5y6u7i8o9p0\n"
+        text = ("before\n-----BEGIN " + "OPENSSH PRIVATE KEY-----\n" + body +
+                "-----END OPENSSH PRIVATE KEY-----\nafter\n"
+                "-----BEGIN CERTIFICATE----- never closed\nline\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            src = os.path.join(tmp, "t.txt")
+            with open(src, "w") as f:
+                f.write(text)
+            counts = {}
+            kt.redact_file(src, os.path.join(tmp, "t.gz"), kt.compile_rules({}, None), counts)
+            with gzip.open(os.path.join(tmp, "t.gz"), "rt") as f:
+                out = f.read()
+        self.assertEqual(out, "before\n[REDACTED:pem]\nafter\n-----BEGIN CERTIFICATE----- never closed\nline\n")
+        self.assertEqual(counts.get("pem"), 1)
 
     def test_source_is_untouched(self):
         with tempfile.TemporaryDirectory() as tmp:

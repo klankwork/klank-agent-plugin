@@ -75,11 +75,16 @@ def compile_rules(env, token=None):
     rules = []
     if token:
         rules.append(("trajectory_token", re.compile(re.escape(token)), None))
-    values = sorted(
-        {v for k, v in env.items()
-         if any(s in k.upper() for s in SENSITIVE_ENV) and len(v) >= 8 and v.lower() not in NOT_SECRET},
-        key=len, reverse=True,
-    )
+    secrets = {v for k, v in env.items()
+               if any(s in k.upper() for s in SENSITIVE_ENV) and len(v) >= 8 and v.lower() not in NOT_SECRET}
+    # A transcript holds a value JSON-escaped, and tool output inside a JSON
+    # string escaped twice, so match those forms as well as the raw one.
+    values = set()
+    for v in secrets:
+        for ascii_only in (False, True):
+            once = json.dumps(v, ensure_ascii=ascii_only)[1:-1]
+            values.update((v, once, json.dumps(once)[1:-1]))
+    values = sorted(values, key=len, reverse=True)
     if values:
         rules.append(("env_secret", re.compile("|".join(re.escape(v) for v in values)), None))
     for kind, pattern, keep in PATTERNS:
@@ -100,12 +105,40 @@ def redact_line(line, rules, counts):
     return line
 
 
+PEM_BEGIN = re.compile(r"-----BEGIN [A-Z0-9 ]{1,40}-----")
+PEM_MAX_LINES = 500
+
+
+def opens_pem(line):
+    """True when the line starts a PEM block it does not also end (a plain-text transcript)."""
+    begins = list(PEM_BEGIN.finditer(line))
+    return bool(begins) and "-----END " not in line[begins[-1].end():]
+
+
 def redact_file(src, dest, rules, counts):
-    """Write a gzipped, redacted copy of src to dest. The source is never modified."""
+    """Write a gzipped, redacted copy of src to dest. The source is never modified.
+
+    Redaction runs line by line, except that a PEM block spread over several
+    lines is gathered (up to PEM_MAX_LINES) and redacted as one piece.
+    """
+    def emit(text):
+        fout.write(redact_line(text, rules, counts).encode("utf-8", "surrogateescape"))
+
     with open(src, "rb") as fin, gzip.open(dest, "wb", compresslevel=6) as fout:
+        block = []
         for raw in fin:
             line = raw.decode("utf-8", "surrogateescape")
-            fout.write(redact_line(line, rules, counts).encode("utf-8", "surrogateescape"))
+            if block:
+                block.append(line)
+                if "-----END " in line or len(block) >= PEM_MAX_LINES:
+                    emit("".join(block))
+                    block = []
+            elif opens_pem(line):
+                block = [line]
+            else:
+                emit(line)
+        if block:
+            emit("".join(block))
 
 
 def find_capability(value, depth=0):
