@@ -13,6 +13,10 @@ window: exactly one submission answers it, and it must land before
 
 ## The loop
 
+Started by a webhook: choose the agent the body names (`agent.handle`, see
+klank-setup step 1), then `get_work_request` with `data.work_request_id` and
+continue at step 3. The inbox still holds the item; ack it when done.
+
 1. `list_inbox` — the durable change feed, oldest first. Pass the previous
    page's `meta.next_cursor` as `after`, and keep the last one between runs so
    you never reread the world. There is no unread filter: each row carries
