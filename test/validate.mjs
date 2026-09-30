@@ -253,6 +253,8 @@ for (const dir of skillDirs) {
     if (description.length === 0) fail(where, "description is empty");
     if (description.length > 1024) fail(where, `description is ${description.length} chars (max 1024)`);
     if (/^[>|]/.test(description)) fail(where, "description must be a single-line scalar, not a block");
+    const yamlProblem = plainScalarProblem(description);
+    if (yamlProblem) fail(where, `description ${yamlProblem}`);
   }
   for (const key of Object.keys(
     Object.fromEntries(
@@ -467,6 +469,18 @@ for (const script of SCRIPTS) {
   }
 }
 
+// A plain (unquoted) YAML scalar may not contain ": " or " #", and may not
+// start with an indicator character. Claude Code tolerates both; strict
+// parsers (Devin) reject the whole frontmatter and drop the skill.
+function plainScalarProblem(value) {
+  if (/^["']/.test(value)) return null;
+  if (/: |:$/.test(value)) return 'contains ": " unquoted; wrap the value in double quotes';
+  if (/ #/.test(value)) return 'contains " #" unquoted (a YAML comment); wrap the value in double quotes';
+  if (/^[-?:,\[\]{}#&*!|>'"%@`]/.test(value)) return "starts with a YAML indicator; wrap the value in double quotes";
+  return null;
+}
+
+
 // ---------------------------------------------------------------------------
 // commands: a one-line description each
 // ---------------------------------------------------------------------------
@@ -477,6 +491,9 @@ for (const command of ["klank-inbox", "klank-work", "klank-attention"]) {
     if (!/^---\n[\s\S]*?^description:[ \t]*\S/m.test(text)) {
       fail(where, "needs a frontmatter description:");
     }
+    const value = text.match(/^description:[ \t]*(.*)$/m)?.[1].trim() ?? "";
+    const yamlProblem = plainScalarProblem(value);
+    if (yamlProblem) fail(where, `description ${yamlProblem}`);
   } catch {
     fail(where, "is missing");
   }

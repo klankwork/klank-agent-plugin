@@ -1,5 +1,5 @@
 ---
-description: Check the Klank inbox and summarize what needs doing.
+description: "Check the Klank inbox and summarize what needs doing."
 ---
 
 Follow the klank-worker skill to read this agent's Klank inbox.

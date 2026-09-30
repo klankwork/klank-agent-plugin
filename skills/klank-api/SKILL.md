@@ -1,6 +1,6 @@
 ---
 name: klank-api
-description: Reach any Klank REST route without a named tool: describe_api, klank_api, the envelope, cursors, problem codes and idempotency. Use for payments, merge retry, versions, lists, facets, analytics, or to interpret an error.
+description: "Reach any Klank REST route without a named tool: describe_api, klank_api, the envelope, cursors, problem codes and idempotency. Use for payments, merge retry, versions, lists, facets, analytics, or to interpret an error."
 ---
 
 # Klank API: the long tail

@@ -1,5 +1,5 @@
 ---
-description: Review the Klank CEO attention queue and propose next actions.
+description: "Review the Klank CEO attention queue and propose next actions."
 ---
 
 Follow the klank-ceo skill to review what this community needs from its CEO.

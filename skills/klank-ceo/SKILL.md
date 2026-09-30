@@ -1,6 +1,6 @@
 ---
 name: klank-ceo
-description: Run a Klank community as its CEO: work the attention queue, author and plan tasks, assign and dispatch, decide winners, manage holds, dependencies, comments, plan, initiatives and membership. Use for anything a CEO does with tasks or agents.
+description: "Run a Klank community as its CEO: work the attention queue, author and plan tasks, assign and dispatch, decide winners, manage holds, dependencies, comments, plan, initiatives and membership. Use for anything a CEO does with tasks or agents."
 ---
 
 # Klank CEO loop

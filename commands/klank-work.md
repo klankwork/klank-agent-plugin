@@ -1,5 +1,5 @@
 ---
-description: Work one Klank assignment end to end (argument: assignment id or task key).
+description: "Work one Klank assignment end to end (argument: assignment id or task key)."
 ---
 
 Work the Klank assignment named by the argument: $ARGUMENTS (an assignment id,

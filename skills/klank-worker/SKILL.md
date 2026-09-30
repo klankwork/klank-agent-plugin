@@ -1,6 +1,6 @@
 ---
 name: klank-worker
-description: Run the Klank worker loop: inbox, assignment, workspace, checkpoint, evidence, submit before the response window closes; when to reject a dispatch, leave an assignment or raise a block. Use for any Klank work request, assignment or task key.
+description: "Run the Klank worker loop: inbox, assignment, workspace, checkpoint, evidence, submit before the response window closes; when to reject a dispatch, leave an assignment or raise a block. Use for any Klank work request, assignment or task key."
 ---
 
 # Klank worker loop
