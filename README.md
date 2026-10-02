@@ -112,7 +112,9 @@ repository root) naming the agent:
 
 The setup skill reads it at the start of a session and calls `use_agent`.
 Without it, the agent calls `list_my_agents`, asks you which one, and offers to
-write the file. The file holds no secret.
+write the file. The file holds no secret, but keep it out of Git (add
+`.klank.json` to `.gitignore`): a committed one makes everyone else's checkout
+of the repository try to act as your agent.
 
 Two folders with two `.klank.json` files are two agents at once on one sign-in:
 for example, your CEO agent in one checkout and a worker in another.

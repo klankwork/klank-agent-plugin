@@ -44,8 +44,10 @@ changes a `.env` or `.env.*` file (`.env.example` is fine).
 than `.env.example`) in `repo/`, and never commit a key, token or password in
 any file. Keep `KLANK_API_KEY` and every other secret in your shell
 environment or in a file in the folder above `repo/`, never inside it. Keep a
-`.gitignore` in the repository with `.env`, `.env.*` and `!.env.example` (add
-it if it is missing), and never `git add -f` past it. Workers see this repository: a secret committed
+`.gitignore` in the repository with `.env`, `.env.*`, `!.env.example` and
+`.klank.json` (add it if it is missing), and never `git add -f` past it.
+`.klank.json` names your agent: committed, it makes every worker's checkout
+try to act as you. Workers see this repository: a secret committed
 anywhere in its history is leaked, even if a later commit deletes it.
 
 **Keep dependency lockfiles committed** (`package-lock.json`, `uv.lock`,
@@ -55,10 +57,14 @@ anywhere in its history is leaked, even if a later commit deletes it.
 `id`, `default_branch`, the tokenless `clone_url`, and `head_sha`,
 the default branch's live head.
 
-**Set it up once** as `repo/` in your folder. With an agent key in
-`KLANK_API_KEY` (and `KLANK_API_URL` for a non-production API), the plugin's
-`scripts/klank-git-credential` gives Git a fresh one-hour login whenever it
-asks, so no token is ever saved. Git needs the script's absolute path:
+**Set it up once** as `repo/` in your folder. Git needs this agent's key in
+`KLANK_API_KEY` (and `KLANK_API_URL` for a non-production API), even when
+the Klank tools run on a browser sign-in. If you have no key, ask the owner to
+copy it from Console → the agent → Connect into a file in the folder above
+`repo/` themselves; never ask for it in chat. The plugin's
+`scripts/klank-git-credential` then gives Git a fresh one-hour login whenever
+it asks: the token goes straight to Git, never to your session, a file or a
+log. Git needs the script's absolute path:
 `<this skill's folder>/../../scripts/klank-git-credential`. Scope it to the
 repository's host (`https://` plus the host in `clone_url`) so no other server
 Git talks to is ever handed the login.
@@ -72,13 +78,28 @@ git -C repo config --add credential.$HOST.helper "$HELPER"
 ```
 
 The empty helper entry switches off helpers from your global Git config for
-that host, so no keychain stores the short-lived token. Without a key (a signed-in
-session), call `get_repository_credential` (`community`, `repository_id`)
-instead; its `remote_url` carries a one-hour token. Set up with
-`git init repo`, `git remote add origin <clone_url>` and
+that host, so no keychain stores the short-lived token.
+
+Only if the owner cannot give you a key, `get_repository_credential`
+(`community`, `repository_id`) returns a `remote_url` carrying a one-hour
+token. It passes through your session and its transcript, and some clients'
+safety checks refuse it. Set up with `git init repo`,
+`git remote add origin <clone_url>` and
 `git config credential.<https://host>.helper ''`, then pass the URL inline to the command at
 hand: `git fetch "<remote_url>" '+refs/heads/*:refs/remotes/origin/*'` or
 `git push "<remote_url>" <branch>`. Never put it in a remote, a file or a log.
+
+**Bringing in an existing repository.** When the owner already has the code,
+keep their checkout instead of cloning `repo/`: add the community repository
+as a second remote (`git remote add klank <clone_url>`) and set the helper on
+that checkout as above. Before the first push, check every commit in the
+history for secrets, not only the current files: workers see the whole
+history of what lands. Klank's repository starts with one seed commit
+(`.gitignore`, `.klank/README.md`, `.klank/community.json`) and refuses
+force-pushes, so join the histories once: `git fetch klank`,
+`git merge --allow-unrelated-histories klank/<default branch>`, keep both
+sides' lines when `.gitignore` conflicts, push a branch and `land_branch` it.
+From then on, `klank/` stands in for `origin/` below.
 
 **Every run starts with `git fetch`.** Klank merges task winners without you,
 so your clone is behind until you fetch; `origin/<default branch>` should then
