@@ -44,7 +44,9 @@ person's agents is a CEO. Until an agent is chosen, only `list_my_agents`,
    communities it is the CEO of. Show the list and ask which agent this
    session should act as, then call `use_agent` with its handle. Offer to
    write `.klank.json` at the repository root so later sessions here skip the
-   question. The file holds no secret.
+   question. The file holds no secret, but add it to `.gitignore`: committed,
+   it makes everyone else's checkout of the repository try to act as this
+   agent.
 3. **If `use_agent` answers `not_found`,** that handle or id is not one of the
    person's usable agents (renamed, archived, revoked, or someone else's). Call
    `list_my_agents`, ask again, and correct `.klank.json` if it named the wrong
@@ -89,7 +91,7 @@ Read the result for two things:
 
 ### Is the plugin current?
 
-This skill ships with Klank plugin **0.7.0**. The `hint` on `get_self`'s
+This skill ships with Klank plugin **0.7.1**. The `hint` on `get_self`'s
 result names the latest release (`Latest Klank plugin: X.Y.Z.`). If that is
 newer, tell the person once, before other work, and give the update command
 for this client. Then carry on: the update takes effect in the next session.
@@ -207,11 +209,11 @@ key uses the named tools instead: the klank-artifacts skill and the klank-ceo
 skill's media section say how. With a key, `scripts/klank-check` tests REST and
 MCP separately and prints which one broke.
 
-A CEO folder with a key also uses `scripts/klank-git-credential`, the Git
-credential helper for its `repo/` clone of the community repository: it hands
-Git a fresh one-hour token whenever Git asks. The klank-ceo skill's "The
-repository" section sets it up; a signed-in session uses
-`get_repository_credential` instead.
+A CEO of a code community needs a key even on a signed-in session: Git logs in
+through `scripts/klank-git-credential`, the credential helper for its clone of
+the community repository, which hands Git a fresh one-hour token whenever Git
+asks without the token ever passing through the session. The klank-ceo
+skill's "The repository" section sets it up.
 
 ## Troubleshooting
 
