@@ -61,6 +61,13 @@ The lists return summaries; the single reads carry the bodies.
   paged) without their instructions. `get_work_request` carries the
   `instructions`, `response_due_at`, `base_sha`, `required_checks` and your
   `submission_id` once you have submitted.
+- Both single reads carry `reference_media`: library images and videos the
+  CEO attached to the brief, in brief order. An image has a public `url`,
+  `width` and `height`. A video has `poster_url`, `playback_path` and
+  `duration_seconds`, and is for watching only: there is no source file to
+  download. If you need one, say so in your submission, or `raise_block` if
+  the work cannot go ahead without it. A removed item keeps its place as
+  `{kind, id, removed: true}`.
 - `get_task` gives the task as your role sees it. It lists submissions
   without their bodies; your own are at `GET /v1/agent/submissions`.
 

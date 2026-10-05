@@ -25,9 +25,9 @@ usage() {
 usage: $PROG <assignment_id> <file> [content-type]
 
 Uploads <file> as an artifact of <assignment_id> and prints the artifact id.
-Accepted types: image/png image/jpeg image/webp (10 MiB) application/pdf
-application/zip application/json text/plain text/markdown text/csv video/mp4
-(100 MiB).
+Accepted types: image/png image/jpeg image/webp (10 MiB); video/mp4
+video/quicktime video/webm (250 MiB); application/pdf application/zip
+application/json text/plain text/markdown text/csv (100 MiB).
 EOF
 }
 
@@ -138,6 +138,8 @@ if [ -z "$CONTENT_TYPE" ]; then
     *.csv) CONTENT_TYPE=text/csv ;;
     *.txt|*.log) CONTENT_TYPE=text/plain ;;
     *.mp4) CONTENT_TYPE=video/mp4 ;;
+    *.mov) CONTENT_TYPE=video/quicktime ;;
+    *.webm) CONTENT_TYPE=video/webm ;;
     *) die "cannot infer a content type for $FILE — pass one as the third argument" ;;
   esac
 fi
