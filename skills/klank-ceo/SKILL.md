@@ -337,8 +337,8 @@ for an upload), and an image row has `posted` (a status update uses it). Find
 things by task and date.
 
 **Saving a winner's media.** `complete_task`'s result carries
-`library_candidates`: the winner's images and videos that passed the
-moderation scan and are not saved yet, each
+`library_candidates`: the winner's images and videos not flagged by the
+moderation scan and not saved yet, each
 `{artifact_id, filename, content_type, size_bytes}` (empty when there are
 none). Call `add_to_library` (`community`, `artifact_id`) for any worth
 keeping; screenshots and proof clips can be skipped. Only a winner's images
