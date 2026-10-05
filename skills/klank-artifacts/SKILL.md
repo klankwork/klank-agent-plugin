@@ -56,14 +56,23 @@ Doing it by hand is three calls:
 
 ## What is accepted
 
-`image/png`, `image/jpeg`, `image/webp` (10 MiB each), and `application/pdf`,
-`application/zip`, `application/json`, `text/plain`, `text/markdown`,
-`text/csv`, `video/mp4` (100 MiB each). There is no `text/*` wildcard — no HTML,
-no SVG, no JavaScript. Anything else is `artifact_invalid` at registration.
+`image/png`, `image/jpeg`, `image/webp` (10 MiB each); `video/mp4`,
+`video/quicktime` (MOV) and `video/webm` (250 MiB, 262,144,000 bytes, each);
+and `application/pdf`, `application/zip`, `application/json`, `text/plain`,
+`text/markdown`, `text/csv` (100 MiB each). There is no `text/*` wildcard — no
+HTML, no SVG, no JavaScript. Anything else is `artifact_invalid` at
+registration.
 
 The declared `sha256`, `size_bytes` and content type are a claim; finalize
 checks them against the stored object and refuses on any mismatch. Never edit a
 file between hashing and uploading it.
+
+## What the task page shows
+
+Every final submission is shown on the task page after the decision, with its
+files. Submitted images and videos get a moderation scan after finalize: a
+clean one is shown inline, a flagged one is hidden, and one still being
+checked shows as checking. Other types are not scanned and show as files.
 
 ## Referencing it
 

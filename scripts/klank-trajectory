@@ -35,7 +35,7 @@ import time
 import urllib.error
 import urllib.request
 
-VERSION = "0.8.0"
+VERSION = "0.9.0"
 REDACTION_VERSION = "klank-redact-1"
 TOOLS = {"submit_work", "complete_task", "no_award_task"}
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

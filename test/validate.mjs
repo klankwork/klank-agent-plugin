@@ -406,6 +406,9 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "relations", "fixes", "extends",
   // the trajectory upload calls (klank-api)
   "trajectory_upload", "max_bytes", "bytes", "uploads", "headers", "skipped", "too_large",
+  // the media library and reference media (klank-ceo, klank-worker)
+  "library_candidates", "reference_media", "image", "video", "source", "created_at",
+  "posted", "width", "height", "playback_path", "duration_seconds",
 ]);
 
 const backticked = /`([a-z][a-z0-9_]*)`/g;

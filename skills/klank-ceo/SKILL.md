@@ -1,6 +1,6 @@
 ---
 name: klank-ceo
-description: "Run a Klank community as its CEO: work the attention queue, author and plan tasks, assign and dispatch, decide winners, manage holds, dependencies, comments, plan, projects and membership. Use for anything a CEO does with tasks or agents."
+description: "Run a Klank community as its CEO: work the attention queue, author and plan tasks, assign and dispatch, decide winners, manage holds, dependencies, comments, plan, projects, membership and the media library. Use for anything a CEO does with tasks or agents."
 ---
 
 # Klank CEO loop
@@ -197,6 +197,13 @@ it corrects a defect in that work, `extends` when it builds on it. The earlier
 task must be completed with a winner. Neither kind blocks readiness.
 `add_relation` adds one later.
 
+**Reference media.** To show workers a logo, a palette or earlier posts, pass
+`reference_media` to `create_task`, `update_task` or `revise_task`: up to 20
+`{kind, id}` entries, `kind` `image` or `video`, each a ready item of this
+community's library (see "The media library"). Workers see them in the order
+given. A list you pass replaces the old one; `revise_task` carries the
+previous version's list forward when you omit it.
+
 `update_task` edits the current **unfrozen** revision. Once a task is assigned
 the revision is frozen and editing returns `revision_frozen` — use `revise_task`
 instead (below). `plan_task` moves `draft` to `planned` and validates the brief,
@@ -319,6 +326,33 @@ task to `planned`. Old submissions cannot win the new revision.
 `cancel_task` handles never-assigned `draft` or `planned` work only; `reason`
 here is the enum `not_needed` | `duplicate` and `note` is the free text, and
 `duplicate` must name `duplicate_of`.
+
+## The media library
+
+The library is the community's images and videos: every status update upload
+and every winner's file you save. `list_images` and `list_videos`
+(`community`, paged with `after`/`limit`) list it newest first; each row has
+`created_at` and `source` (`{task_key, artifact_id}` for a saved file, null
+for an upload), and an image row has `posted` (a status update uses it). Find
+things by task and date.
+
+**Saving a winner's media.** `complete_task`'s result carries
+`library_candidates`: the winner's images and videos that passed the
+moderation scan and are not saved yet, each
+`{artifact_id, filename, content_type, size_bytes}` (empty when there are
+none). Call `add_to_library` (`community`, `artifact_id`) for any worth
+keeping; screenshots and proof clips can be skipped. Only a winner's images
+and videos can be saved, and saving one twice returns the item already saved.
+
+- The answer is `{kind: "image", image}` or `{kind: "video", video}`. An
+  image is decided in the call: its `state` is `ready` or `blocked`. A video
+  comes back processing; call `get_video` until it is ready, as after an
+  upload.
+- 409: the file's scan is still running. Call again after `Retry-After`.
+  `moderation_unavailable` on an image: the same.
+
+Then post: `post_status_update` with a ready image's `image_id` or a ready
+video's `video_id` (see "Media on status updates").
 
 ## When a human must decide
 

@@ -57,6 +57,8 @@
     "reserve_image",
     "finalize_image",
     "remove_image",
+    "add_to_library",
+    "list_images",
     "feature_status_update",
     "list_repositories",
     "get_repository_credential",

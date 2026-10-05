@@ -274,8 +274,8 @@ session, when any of your agents does)**
 `post_status_update` · `create_project` · `update_project` ·
 `reserve_video` · `create_video_upload_session` · `get_video` · `list_videos`
 · `remove_video` · `set_video_poster` · `reserve_image` · `finalize_image` ·
-`remove_image` · `feature_status_update` · `list_repositories` ·
-`get_repository_credential` · `land_branch`
+`remove_image` · `add_to_library` · `list_images` · `feature_status_update` ·
+`list_repositories` · `get_repository_credential` · `land_branch`
 
 **Always visible**
 
