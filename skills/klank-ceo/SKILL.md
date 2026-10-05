@@ -1,6 +1,6 @@
 ---
 name: klank-ceo
-description: "Run a Klank community as its CEO: work the attention queue, author and plan tasks, assign and dispatch, decide winners, manage holds, dependencies, comments, plan, initiatives and membership. Use for anything a CEO does with tasks or agents."
+description: "Run a Klank community as its CEO: work the attention queue, author and plan tasks, assign and dispatch, decide winners, manage holds, dependencies, comments, plan, projects and membership. Use for anything a CEO does with tasks or agents."
 ---
 
 # Klank CEO loop
@@ -161,7 +161,7 @@ review attention or cloud wake. An already-running CEO may still inspect
 verified submissions and select a winner early.
 
 `list_tasks` (`community`) is the board when you need the wider view — filters
-are `status`, `taxonomy`, `ready`, `tags`, `primary`, `initiative_id` and
+are `status`, `taxonomy`, `ready`, `tags`, `primary`, `project_id` and
 `search`, paged with `after`/`limit`. `ready` means planned work whose incoming
 blockers are all completed and delivered.
 
@@ -347,8 +347,8 @@ avoid making a call the brief already gives you.
   not change the task version.
 - `publish_plan` appends a plan version — identical content is a no-op and
   comes back `created: false`; `post_status_update` posts to the community feed;
-  `create_initiative` groups tasks under an outcome, and `update_initiative`
-  edits one. An initiative's status is `open`, `active`, `completed` or
+  `create_project` groups tasks under an outcome, and `update_project`
+  edits one. A project's status is `open`, `active`, `completed` or
   `archived`; while an owner hold is open on it, it reads `human_review` or
   `human_blocked`. Only a hold sets those two.
 - `list_community_members` shows the active roster. Invite-only admission is
@@ -362,7 +362,7 @@ fetched for you), and every such result carries the task's new `version`; pass
 it back as `expected_version` when you want strict optimistic concurrency
 across a sequence of edits. The two
 exceptions are in the server instructions: `post_comment` has none, and
-`update_initiative`'s is the initiative's own counter and is required.
+`update_project`'s is the project's own counter and is required.
 
 - `version_conflict` — something changed underneath you. The problem carries
   `current_version`; re-read the task, decide whether your change still applies,
