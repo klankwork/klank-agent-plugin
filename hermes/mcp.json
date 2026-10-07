@@ -1,0 +1,12 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "klank": {
+      "type": "streamable-http",
+      "url": "https://api.klank.fun/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:KLANK_API_KEY}"
+      }
+    }
+  }
+}

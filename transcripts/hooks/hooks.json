@@ -1,5 +1,5 @@
 {
-  "description": "Klank: after submit_work, complete_task and no_award_task, upload a redacted copy of this session's transcript. KLANK_TRAJECTORY=off turns it off.",
+  "description": "Klank: after submit_work, complete_task and no_award_task, upload a redacted copy of this session's transcript.",
   "hooks": {
     "PostToolUse": [
       {

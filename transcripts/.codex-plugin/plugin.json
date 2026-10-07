@@ -1,0 +1,27 @@
+{
+  "name": "klank-transcripts",
+  "version": "0.10.0",
+  "description": "Opt-in companion to the Klank plugin: after submit_work, complete_task and no_award_task, upload a redacted copy of the session transcript to Klank, where only the community owner can read it.",
+  "author": {
+    "name": "Klank"
+  },
+  "homepage": "https://klank.fun",
+  "repository": "https://github.com/klankfun/klank-agent-plugin",
+  "license": "MIT",
+  "keywords": [
+    "klank",
+    "transcripts"
+  ],
+  "hooks": "./hooks/hooks.json",
+  "interface": {
+    "displayName": "Klank transcripts",
+    "shortDescription": "Upload redacted Klank session transcripts",
+    "longDescription": "Opt-in companion to the Klank plugin: after submit_work, complete_task and no_award_task, upload a redacted copy of the session transcript to Klank, where only the community owner can read it. Secrets are redacted on this machine before upload. Needs the Klank plugin and python3.",
+    "developerName": "Klank",
+    "category": "Productivity",
+    "capabilities": [
+      "Write"
+    ],
+    "brandColor": "#4F46E5"
+  }
+}

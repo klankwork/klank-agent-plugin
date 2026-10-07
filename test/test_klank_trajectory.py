@@ -22,7 +22,7 @@ import time
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SCRIPT = os.path.join(ROOT, "scripts", "klank-trajectory")
+SCRIPT = os.path.join(ROOT, "transcripts", "scripts", "klank-trajectory")
 
 loader = importlib.machinery.SourceFileLoader("klank_trajectory", SCRIPT)
 spec = importlib.util.spec_from_loader("klank_trajectory", loader)

@@ -13,8 +13,11 @@
 //   5. no credential material is checked in
 //   6. every tool name a skill mentions is a real, frozen Klank tool
 //   7. every script parses and is executable
-//   8. the transcript hooks fit each harness's documented hook schema and fire
-//      on exactly the Klank decision tools
+//   8. the transcript hooks live only in the opt-in transcripts/ plugin, fit
+//      each harness's documented hook schema and fire on exactly the Klank
+//      decision tools
+//   9. hermes/ is a portable Agent Plugins package whose skills and scripts are
+//      exact copies of the root ones
 //
 // Check 6 is the one that earns its keep: skills are read by a model on every
 // relevant turn, and a mistyped tool name is a call the client cannot make. So
@@ -23,7 +26,7 @@
 // listed in NON_TOOL_IDENTIFIERS below. Adding a field name to a skill means
 // adding it there — that is the point: a typo has nowhere to hide.
 
-import { readFileSync, readdirSync, statSync, accessSync, constants } from "node:fs";
+import { readFileSync, readdirSync, statSync, accessSync, existsSync, constants } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -135,14 +138,20 @@ for (const where of [".codex-plugin/plugin.json", ".plugin/plugin.json"]) {
   if (parsed.get(where) && parsed.get(where).mcpServers !== "./.mcp.json") fail(where, 'mcpServers must be "./.mcp.json"');
 }
 
+// Both catalogs list the plugin and, beside it, the opt-in transcripts plugin.
+const CATALOG = [
+  ["klank", "./"],
+  ["klank-transcripts", "./transcripts"],
+];
 const marketplace = requireFile(".claude-plugin/marketplace.json");
 if (marketplace) {
   const where = ".claude-plugin/marketplace.json";
   if (!marketplace.name) fail(where, "\"name\" is required");
   if (!marketplace.owner?.name) fail(where, "\"owner.name\" is required");
-  const entry = (marketplace.plugins ?? [])[0];
-  if (!entry) fail(where, "plugins[] must list the plugin");
-  else if (!entry.name || !entry.source) fail(where, "plugins[0] needs name and source");
+  const listed = (marketplace.plugins ?? []).map((p) => [p.name, p.source]);
+  if (JSON.stringify(listed) !== JSON.stringify(CATALOG)) {
+    fail(where, `plugins[] must list ${JSON.stringify(CATALOG)} (found ${JSON.stringify(listed)})`);
+  }
 }
 
 const codex = parsed.get(".codex-plugin/plugin.json");
@@ -173,13 +182,19 @@ if (copilot) {
   if (copilot.commands !== "commands/") fail(".plugin/plugin.json", 'commands must be "commands/"');
 }
 
-// Every path a manifest points at must exist.
-for (const manifest of VENDOR_MANIFESTS) {
+// Every path a manifest points at must exist, relative to its plugin's root.
+const TRANSCRIPT_MANIFESTS = [
+  "transcripts/.claude-plugin/plugin.json",
+  "transcripts/.codex-plugin/plugin.json",
+  "transcripts/.cursor-plugin/plugin.json",
+];
+for (const manifest of [...VENDOR_MANIFESTS, ...TRANSCRIPT_MANIFESTS]) {
+  const pluginRoot = join(ROOT, dirname(dirname(manifest)));
   for (const key of ["skills", "commands", "mcpServers", "hooks"]) {
     const target = parsed.get(manifest)?.[key];
     if (typeof target !== "string") continue;
     try {
-      statSync(join(ROOT, target));
+      statSync(join(pluginRoot, target));
     } catch {
       fail(manifest, `${key} points at ${target}, which does not exist`);
     }
@@ -188,14 +203,25 @@ for (const manifest of VENDOR_MANIFESTS) {
 
 const codexMarketplace = requireFile(".agents/plugins/marketplace.json");
 if (codexMarketplace) {
-  const entry = (codexMarketplace.plugins ?? [])[0];
-  if (codexMarketplace.name !== "klank" || entry?.name !== "klank") {
-    fail(".agents/plugins/marketplace.json", 'must list the "klank" plugin in the "klank" marketplace');
+  const listed = (codexMarketplace.plugins ?? []).map((p) => [p.name, p.source?.path]);
+  if (codexMarketplace.name !== "klank" || JSON.stringify(listed) !== JSON.stringify(CATALOG)) {
+    fail(".agents/plugins/marketplace.json", `the "klank" marketplace must list ${JSON.stringify(CATALOG)}`);
+  }
+}
+
+for (const where of TRANSCRIPT_MANIFESTS) {
+  const manifest = requireFile(where);
+  if (manifest && manifest.name !== "klank-transcripts") fail(where, '"name" must be "klank-transcripts"');
+  for (const key of ["skills", "commands", "mcpServers", "userConfig", "variables"]) {
+    if (manifest?.[key] !== undefined) fail(where, `"${key}" must not exist: this plugin only adds the hook`);
   }
 }
 
 const versions = new Map(
-  [...VENDOR_MANIFESTS, "package.json"].map((name) => [name, parsed.get(name)?.version]),
+  [...VENDOR_MANIFESTS, ...TRANSCRIPT_MANIFESTS, "hermes/plugin.json", "package.json"].map((name) => [
+    name,
+    parsed.get(name)?.version,
+  ]),
 );
 if (new Set(versions.values()).size !== 1) {
   fail("versions", `every manifest must carry the same version: ${JSON.stringify(Object.fromEntries(versions))}`);
@@ -409,6 +435,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   // the media library and reference media (klank-ceo, klank-worker)
   "library_candidates", "reference_media", "image", "video", "source", "created_at",
   "posted", "width", "height", "playback_path", "duration_seconds",
+  // client-prefixed tool names and the opt-in transcripts folder (klank-setup)
+  "mcp__plugin_klank_klank__get_self", "mcp__klank__get_self", "klank", "transcripts",
 ]);
 
 const backticked = /`([a-z][a-z0-9_]*)`/g;
@@ -458,7 +486,7 @@ function distance(a, b) {
 // ---------------------------------------------------------------------------
 // 7. scripts
 // ---------------------------------------------------------------------------
-const SCRIPTS = ["scripts/klank-upload", "scripts/klank-check", "scripts/klank-image-upload", "scripts/klank-video-upload", "scripts/klank-git-credential", "scripts/klank-trajectory"];
+const SCRIPTS = ["scripts/klank-upload", "scripts/klank-check", "scripts/klank-image-upload", "scripts/klank-video-upload", "scripts/klank-git-credential", "transcripts/scripts/klank-trajectory"];
 for (const script of SCRIPTS) {
   const path = join(ROOT, script);
   try {
@@ -482,10 +510,16 @@ for (const script of SCRIPTS) {
 // ---------------------------------------------------------------------------
 // 8. transcript hooks
 // ---------------------------------------------------------------------------
-// Claude Code and Codex share hooks/hooks.json (Claude's schema; Codex reads
-// the same one): https://code.claude.com/docs/en/hooks,
-// https://learn.chatgpt.com/docs/hooks. Cursor reads its own schema from the
-// path .cursor-plugin/plugin.json names: https://cursor.com/docs/hooks.
+// The hooks belong to the opt-in transcripts/ plugin; installing Klank alone
+// must register none. Claude Code and Codex share transcripts/hooks/hooks.json
+// (Claude's schema; Codex reads the same one):
+// https://code.claude.com/docs/en/hooks, https://learn.chatgpt.com/docs/hooks.
+// Cursor reads its own schema from the path its manifest names:
+// https://cursor.com/docs/hooks.
+if (existsSync(join(ROOT, "hooks"))) fail("hooks/", "must not exist: Claude Code would load it with the Klank plugin");
+for (const where of VENDOR_MANIFESTS) {
+  if (parsed.get(where)?.hooks !== undefined) fail(where, '"hooks" must not be set: transcripts are opt-in');
+}
 const CAPTURE_TOOLS = ["submit_work", "complete_task", "no_award_task"];
 const TRAJECTORY_SCRIPT = "/scripts/klank-trajectory";
 for (const tool of CAPTURE_TOOLS) {
@@ -513,9 +547,9 @@ function checkKeys(where, object, allowed) {
   }
 }
 
-const sharedHooks = requireFile("hooks/hooks.json");
+const sharedHooks = requireFile("transcripts/hooks/hooks.json");
 if (sharedHooks) {
-  const where = "hooks/hooks.json";
+  const where = "transcripts/hooks/hooks.json";
   checkKeys(where, sharedHooks, ["description", "hooks"]);
   checkKeys(where, sharedHooks.hooks, ["PostToolUse"]);
   const groups = sharedHooks.hooks?.PostToolUse;
@@ -538,9 +572,9 @@ if (sharedHooks) {
   }
 }
 
-const cursorHooks = requireFile("hooks/cursor-hooks.json");
+const cursorHooks = requireFile("transcripts/hooks/cursor-hooks.json");
 if (cursorHooks) {
-  const where = "hooks/cursor-hooks.json";
+  const where = "transcripts/hooks/cursor-hooks.json";
   checkKeys(where, cursorHooks, ["version", "hooks"]);
   if (cursorHooks.version !== 1) fail(where, "version must be 1");
   checkKeys(where, cursorHooks.hooks, ["afterMCPExecution"]);
@@ -561,14 +595,73 @@ if (cursorHooks) {
 // addition to it, so naming it there would register the hook twice. Codex
 // names the shared file; Cursor must name its own, or it would read the
 // Claude-format default.
-if (parsed.get(".claude-plugin/plugin.json")?.hooks !== undefined) {
-  fail(".claude-plugin/plugin.json", '"hooks" must not be set: Claude Code already loads hooks/hooks.json');
+if (parsed.get("transcripts/.claude-plugin/plugin.json")?.hooks !== undefined) {
+  fail("transcripts/.claude-plugin/plugin.json", '"hooks" must not be set: Claude Code already loads hooks/hooks.json');
 }
-if (parsed.get(".codex-plugin/plugin.json")?.hooks !== "./hooks/hooks.json") {
-  fail(".codex-plugin/plugin.json", 'hooks must be "./hooks/hooks.json"');
+if (parsed.get("transcripts/.codex-plugin/plugin.json")?.hooks !== "./hooks/hooks.json") {
+  fail("transcripts/.codex-plugin/plugin.json", 'hooks must be "./hooks/hooks.json"');
 }
-if (parsed.get(".cursor-plugin/plugin.json")?.hooks !== "./hooks/cursor-hooks.json") {
-  fail(".cursor-plugin/plugin.json", 'hooks must be "./hooks/cursor-hooks.json"');
+if (parsed.get("transcripts/.cursor-plugin/plugin.json")?.hooks !== "./hooks/cursor-hooks.json") {
+  fail("transcripts/.cursor-plugin/plugin.json", 'hooks must be "./hooks/cursor-hooks.json"');
+}
+
+// ---------------------------------------------------------------------------
+// 9. the Hermes package
+// ---------------------------------------------------------------------------
+// Hermes loads a portable Agent Plugins v1 folder: root plugin.json and
+// mcp.json, skills/ beside them, and nothing that resolves outside it. Its
+// remote MCP entries take only type, url and headers, so it cannot sign in
+// through the browser: it is the one package that sends a key, read from the
+// Hermes profile's environment and never written into the package.
+const HERMES_FILES = new Set(["plugin.json", "mcp.json"]);
+const hermesManifest = requireFile("hermes/plugin.json");
+if (hermesManifest) {
+  const where = "hermes/plugin.json";
+  if (hermesManifest.$schema !== "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json") {
+    fail(where, "$schema must be the Agent Plugins 1.0.0 plugin schema");
+  }
+  if (hermesManifest.name !== "klank") fail(where, '"name" must be "klank"');
+  const portable = ["$schema", "name", "version", "description", "author", "homepage", "repository", "license", "keywords"];
+  for (const key of Object.keys(hermesManifest)) {
+    if (!portable.includes(key)) fail(where, `"${key}" is not a portable manifest field`);
+  }
+}
+const hermesMcp = requireFile("hermes/mcp.json");
+if (hermesMcp) {
+  const expected = {
+    $schema: "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+    mcpServers: {
+      klank: {
+        type: "streamable-http",
+        url: PRODUCTION_MCP,
+        headers: { Authorization: "Bearer ${env:KLANK_API_KEY}" },
+      },
+    },
+  };
+  if (JSON.stringify(hermesMcp) !== JSON.stringify(expected)) {
+    fail("hermes/mcp.json", `must be exactly ${JSON.stringify(expected)}`);
+  }
+}
+// hermes/skills and hermes/scripts are copies (npm run sync:hermes); anything
+// else in hermes/ is a file Hermes would ship that nothing checks.
+const hermesFiles = files.map(rel).filter((f) => f.startsWith("hermes/")).map((f) => f.slice("hermes/".length));
+for (const name of hermesFiles) {
+  const [top] = name.split("/");
+  if (HERMES_FILES.has(name)) continue;
+  if (top !== "skills" && top !== "scripts") {
+    fail(`hermes/${name}`, "is not part of the Hermes package (plugin.json, mcp.json, skills/, scripts/)");
+    continue;
+  }
+  const source = join(ROOT, name);
+  if (!existsSync(source)) fail(`hermes/${name}`, `has no ${name} to copy; run npm run sync:hermes`);
+}
+for (const source of files.map(rel).filter((f) => /^(skills|scripts)\//.test(f))) {
+  const copy = join(ROOT, "hermes", source);
+  if (!existsSync(copy) || !readFileSync(copy).equals(readFileSync(join(ROOT, source)))) {
+    fail(`hermes/${source}`, `differs from ${source}; run npm run sync:hermes`);
+  } else if ((statSync(copy).mode & 0o111) !== (statSync(join(ROOT, source)).mode & 0o111)) {
+    fail(`hermes/${source}`, `has different executable bits from ${source}; run npm run sync:hermes`);
+  }
 }
 
 // A plain (unquoted) YAML scalar may not contain ": " or " #", and may not

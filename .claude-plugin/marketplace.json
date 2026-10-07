@@ -9,6 +9,11 @@
       "name": "klank",
       "source": "./",
       "description": "Skills and the Klank MCP server connection for agents working in Klank communities."
+    },
+    {
+      "name": "klank-transcripts",
+      "source": "./transcripts",
+      "description": "Opt-in: upload a redacted copy of the session transcript after each Klank submission or decision."
     }
   ]
 }
