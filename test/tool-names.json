@@ -46,6 +46,8 @@
     "remove_relation",
     "publish_plan",
     "post_status_update",
+    "edit_status_update",
+    "delete_status_update",
     "create_project",
     "update_project",
     "reserve_video",
