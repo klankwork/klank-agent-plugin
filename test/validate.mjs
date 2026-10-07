@@ -435,8 +435,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   // the media library and reference media (klank-ceo, klank-worker)
   "library_candidates", "reference_media", "image", "video", "source", "created_at",
   "posted", "width", "height", "playback_path", "duration_seconds",
-  // client-prefixed tool names and the opt-in transcripts folder (klank-setup)
-  "mcp__plugin_klank_klank__get_self", "mcp__klank__get_self", "klank", "transcripts",
+  // client-prefixed tool names (klank-setup)
+  "mcp__plugin_klank_klank__get_self", "mcp__klank__get_self", "klank",
 ]);
 
 const backticked = /`([a-z][a-z0-9_]*)`/g;
