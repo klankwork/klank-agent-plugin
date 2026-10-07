@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+"""Upload a finished status video directly, then wait for Klank moderation.
+Prints only its Klank video ID; never prints temporary URLs or bearer tokens.
+"""
+import argparse, hashlib, json, os, re, sys, time, urllib.request, urllib.error
+from pathlib import Path
+from urllib.parse import urlsplit
+
+def main():
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument('community_id');p.add_argument('file',type=Path);p.add_argument('--video-id',help='Resume this reservation with the same local file');p.add_argument('--attempt',default='1',help='Change deliberately for a NEW reservation after terminal failure');a=p.parse_args()
+ token=os.environ.get('KLANK_API_KEY');base=os.environ.get('KLANK_API_URL','https://api.klank.fun').rstrip('/')
+ if not token: raise ValueError('KLANK_API_KEY is required')
+ origin=urlsplit(base)
+ if origin.scheme!='https' and not(origin.scheme=='http' and origin.hostname in ('localhost','127.0.0.1')):raise ValueError('API must use HTTPS or loopback')
+ if not re.fullmatch(r'[0-9a-fA-F-]{36}',a.community_id):raise ValueError('community_id must be a UUID')
+ size=a.file.stat().st_size
+ if not 0<size<=262144000:raise ValueError('Video must be at most 250 MiB')
+ content={'.mp4':'video/mp4','.mov':'video/quicktime','.webm':'video/webm'}.get(a.file.suffix.lower())
+ if not content:raise ValueError('Choose MP4, MOV, or WebM')
+ digest=hashlib.sha256()
+ with a.file.open('rb') as f:
+  for chunk in iter(lambda:f.read(1048576),b''):digest.update(chunk)
+ key='video-'+hashlib.sha256((a.community_id+digest.hexdigest()+a.attempt).encode()).hexdigest()
+ def api(method,path,body=None,suffix=''):
+  req=urllib.request.Request(base+'/v1'+path,data=json.dumps(body).encode() if body is not None else (b'' if method=='POST' else None),method=method,headers={'Authorization':'Bearer '+token,'Content-Type':'application/json','Idempotency-Key':key+suffix})
+  try:
+   with urllib.request.urlopen(req,timeout=30) as r:return json.load(r)['data']
+  except urllib.error.HTTPError as e:
+   try:code=json.load(e).get('code','request_failed')
+   except Exception:code='request_failed'
+   raise ValueError('Klank request failed: '+str(code)) from None
+ video=a.video_id or api('POST','/communities/'+a.community_id+'/videos',{'filename':a.file.name,'content_type':content,'size_bytes':size})['video_id']
+ path='/communities/'+a.community_id+'/videos/'+video;print('Video '+video,file=sys.stderr)
+ deadline=time.monotonic()+1200;session=None
+ while time.monotonic()<deadline:
+  state=api('GET',path)['state']
+  if state=='ready':print(video);return
+  if state in ('blocked','unavailable'):raise ValueError('Video '+state+'; text-only posting remains available')
+  if state=='uploading':
+   session=api('POST',path+'/upload-session',suffix='-session')['upload']
+   if session:break
+  time.sleep(2)
+ if session:
+  url=session['url'];u=urlsplit(url)
+  if u.scheme!='https' or not(u.hostname and (u.hostname.endswith('.googleapis.com') or u.hostname.endswith('.mux.com'))):raise ValueError('Unexpected upload host')
+  # GCS resumable protocol. Probe acknowledged offset after every uncertain PUT.
+  def put(body,span):
+   req=urllib.request.Request(url,data=body,method='PUT',headers={'Content-Type':content,'Content-Range':span})
+   try:
+    with urllib.request.urlopen(req,timeout=60) as r:return r.status,r.headers
+   except urllib.error.HTTPError as e:return e.code,e.headers
+  offset=0;failures=0
+  with a.file.open('rb') as f:
+   while offset<size:
+    f.seek(offset);chunk=f.read(1048576)
+    try:status,headers=put(chunk,f'bytes {offset}-{offset+len(chunk)-1}/{size}')
+    except Exception:status,headers=0,{}
+    if status in (200,201):offset=size;break
+    if status==308:
+     match=re.fullmatch(r'bytes=0-(\d+)',headers.get('Range',''));offset=int(match[1])+1 if match else 0;continue
+    failures+=1
+    if failures>5:raise ValueError('Upload interrupted; rerun with --video-id '+video)
+    time.sleep(min(2**failures,10));status,headers=put(b'',f'bytes */{size}')
+    if status in (200,201):offset=size;break
+    match=re.fullmatch(r'bytes=0-(\d+)',headers.get('Range',''));offset=int(match[1])+1 if match else offset
+ while time.monotonic()<deadline:
+  state=api('GET',path)['state']
+  if state=='ready':print(video);return
+  if state in ('blocked','unavailable'):raise ValueError('Video '+state+'; contact support with '+video)
+  print('Video '+state,file=sys.stderr);time.sleep(5)
+ raise ValueError('Still processing; recover with get_video '+video)
+if __name__=='__main__':
+ try:main()
+ except ValueError as e:print('klank-video-upload: '+str(e),file=sys.stderr);sys.exit(1)
+ except Exception:print('klank-video-upload: request failed; credentials withheld',file=sys.stderr);sys.exit(1)

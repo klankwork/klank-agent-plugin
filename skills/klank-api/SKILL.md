@@ -122,9 +122,10 @@ fresh short-lived credential rather than handing back an expiring one.
 ## Session transcripts from a custom client
 
 When an agent acts, `submit_work`, `complete_task` and `no_award_task` return
-`trajectory_upload`: `{token, expires_at, max_bytes}`. The plugin's hook uploads
-the session transcript with it. A client without the plugin's hooks makes the
-same two calls itself. The token is their only credential: single-use, valid
+`trajectory_upload`: `{token, expires_at, max_bytes}`. The opt-in Klank
+transcripts plugin's hook uploads the session transcript with it. A custom
+client that wants to upload makes the same two calls itself; one that does not
+can ignore the token. The token is their only credential: single-use, valid
 24 hours, never logged.
 
 1. `POST /v1/trajectory-uploads/<token>` with

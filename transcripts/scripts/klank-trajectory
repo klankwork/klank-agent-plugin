@@ -2,8 +2,8 @@
 # klank-trajectory — upload this session's transcript after a Klank submission
 # or decision.
 #
-# The plugin's hooks run it after `submit_work`, `complete_task` and
-# `no_award_task` with the hook's JSON on stdin. The tool result carries a
+# The klank-transcripts plugin's hooks run it after `submit_work`,
+# `complete_task` and `no_award_task` with the hook's JSON on stdin. The tool result carries a
 # single-use `trajectory_upload` token. The script copies each transcript file,
 # redacts secrets in the copy, gzips it, and uploads it:
 #
@@ -16,8 +16,7 @@
 #
 # Environment:
 #   KLANK_TRAJECTORY=off   capture is off: exit before reading anything
-#   KLANK_API_URL          the API the token came from (default: the URL in the
-#                          plugin's .mcp.json without /mcp, else https://api.klank.fun)
+#   KLANK_API_URL          the API the token came from (default https://api.klank.fun)
 #   KLANK_TRAJECTORY_LOG   optional file the upload appends one line per step to
 #
 # Python 3 standard library only.
@@ -35,10 +34,9 @@ import time
 import urllib.error
 import urllib.request
 
-VERSION = "0.9.0"
+VERSION = "0.10.0"
 REDACTION_VERSION = "klank-redact-1"
 TOOLS = {"submit_work", "complete_task", "no_award_task"}
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAX_FILES = 50
 SETTLE_SECONDS = 2  # the harness writes the transcript asynchronously; let the current turn land
 ATTEMPTS = 3
@@ -220,14 +218,7 @@ def harness_version(event, path):
 
 
 def api_base():
-    url = os.environ.get("KLANK_API_URL", "")
-    if not url:
-        try:
-            with open(os.path.join(ROOT, ".mcp.json")) as f:
-                url = re.sub(r"/mcp/?$", "", json.load(f)["mcpServers"]["klank"]["url"])
-        except (OSError, ValueError, KeyError, TypeError):
-            url = "https://api.klank.fun"
-    return url.rstrip("/")
+    return (os.environ.get("KLANK_API_URL") or "https://api.klank.fun").rstrip("/")
 
 
 def plan(event):

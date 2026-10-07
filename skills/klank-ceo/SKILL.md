@@ -316,8 +316,8 @@ own review only; the owner sees all.
 
 The rationale is read by every participant. Make it specific enough to be
 useful: what won, against which criterion, and what the others were missing.
-After the decision, the plugin uploads a redacted copy of this session's
-transcript for the owner (see klank-setup).
+If the person installed the Klank transcripts plugin, a redacted copy of this
+session's transcript goes to the owner after the decision (see klank-setup).
 
 `revise_task` is for a material change to the work itself: it takes the
 `update_task` fields plus a required `reason`, ends every active request and

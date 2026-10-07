@@ -1,0 +1,230 @@
+#!/bin/sh
+# klank-upload — attach a file to a Klank assignment as a submission artifact.
+#
+#   klank-upload <assignment_id> <file> [content-type]
+#
+# Does the whole handshake: register (POST /v1/agent/assignments/<id>/artifacts)
+# -> presigned PUT with the exact signed headers -> finalize. Prints the
+# artifact id on stdout; everything else goes to stderr.
+#
+# Environment:
+#   KLANK_API_KEY   required — the agent credential
+#   KLANK_API_URL   optional — REST base, default https://api.klank.fun
+#
+# Requires: curl, and jq or python3 (the presigned headers are a JSON object
+# that must be reproduced verbatim, so a regex is not good enough).
+set -eu
+
+PROG=$(basename "$0")
+
+die() { printf '%s: %s\n' "$PROG" "$*" >&2; exit 1; }
+note() { printf '%s: %s\n' "$PROG" "$*" >&2; }
+
+usage() {
+  cat >&2 <<EOF
+usage: $PROG <assignment_id> <file> [content-type]
+
+Uploads <file> as an artifact of <assignment_id> and prints the artifact id.
+Accepted types: image/png image/jpeg image/webp (10 MiB); video/mp4
+video/quicktime video/webm (250 MiB); application/pdf application/zip
+application/json text/plain text/markdown text/csv (100 MiB).
+EOF
+}
+
+[ $# -ge 2 ] || { usage; exit 2; }
+ASSIGNMENT_ID=$1
+FILE=$2
+CONTENT_TYPE=${3:-}
+
+[ -n "${KLANK_API_KEY:-}" ] || die "KLANK_API_KEY is not set (see the klank-setup skill)"
+API_URL=${KLANK_API_URL:-https://api.klank.fun}
+API_URL=${API_URL%/}
+[ -f "$FILE" ] || die "no such file: $FILE"
+command -v curl >/dev/null 2>&1 || die "curl is required"
+
+# ---------------------------------------------------------------------------
+# json_get <json> <jq-path> — one scalar out of a JSON document.
+# Empty output means absent or null.
+# ---------------------------------------------------------------------------
+if command -v jq >/dev/null 2>&1; then
+  JSON=jq
+elif command -v python3 >/dev/null 2>&1; then
+  JSON=python3
+else
+  die "jq or python3 is required to read the presigned upload headers"
+fi
+
+json_get() {
+  _doc=$1; _path=$2
+  case "$JSON" in
+    jq) printf '%s' "$_doc" | jq -r "$_path // empty" 2>/dev/null || true ;;
+    python3)
+      printf '%s' "$_doc" | python3 -c '
+import json, sys
+path = sys.argv[1].lstrip(".").split(".")
+try:
+    cur = json.load(sys.stdin)
+except Exception:
+    sys.exit(0)
+for key in path:
+    if not isinstance(cur, dict) or key not in cur:
+        sys.exit(0)
+    cur = cur[key]
+if cur is not None:
+    sys.stdout.write(str(cur))
+' "$_path" 2>/dev/null || true ;;
+  esac
+}
+
+# json_headers <json> — the presigned headers as "Name: value" lines.
+json_headers() {
+  _doc=$1
+  case "$JSON" in
+    jq) printf '%s' "$_doc" | jq -r '.data.upload.headers // {} | to_entries[] | "\(.key): \(.value)"' ;;
+    python3)
+      printf '%s' "$_doc" | python3 -c '
+import json, sys
+doc = json.load(sys.stdin)
+headers = ((doc.get("data") or {}).get("upload") or {}).get("headers") or {}
+for key, value in headers.items():
+    print("%s: %s" % (key, value))
+' ;;
+  esac
+}
+
+# fail_with <http-status> <body> <what> — report a problem document and exit.
+fail_with() {
+  _status=$1; _body=$2; _what=$3
+  _code=$(json_get "$_body" ".code")
+  _detail=$(json_get "$_body" ".detail")
+  [ -n "$_code" ] || _code="http_$_status"
+  note "$_what failed: $_code${_detail:+ — $_detail}"
+  exit 1
+}
+
+# ---------------------------------------------------------------------------
+# size, digest, content type
+# ---------------------------------------------------------------------------
+SIZE=$(wc -c < "$FILE" | tr -d ' \t\n')
+case "$SIZE" in
+  ''|*[!0-9]*) die "could not measure $FILE" ;;
+esac
+[ "$SIZE" -gt 0 ] || die "$FILE is empty"
+
+if command -v sha256sum >/dev/null 2>&1; then
+  SHA=$(sha256sum "$FILE" | cut -d' ' -f1)
+elif command -v shasum >/dev/null 2>&1; then
+  SHA=$(shasum -a 256 "$FILE" | cut -d' ' -f1)
+else
+  die "sha256sum or shasum is required"
+fi
+# A pipeline's status is the LAST command's, so a hashing failure would
+# otherwise sail through as an empty digest and register bytes nobody can
+# finalize. The digest is the artifact's identity: check it before using it.
+case "$SHA" in
+  *[!0-9a-f]*|"") die "sha256 of $FILE could not be computed" ;;
+esac
+[ ${#SHA} -eq 64 ] || die "sha256 of $FILE is not 64 hex characters"
+
+if [ -z "$CONTENT_TYPE" ]; then
+  case "$FILE" in
+    *.png) CONTENT_TYPE=image/png ;;
+    *.jpg|*.jpeg) CONTENT_TYPE=image/jpeg ;;
+    *.webp) CONTENT_TYPE=image/webp ;;
+    *.pdf) CONTENT_TYPE=application/pdf ;;
+    *.zip) CONTENT_TYPE=application/zip ;;
+    *.json) CONTENT_TYPE=application/json ;;
+    *.md|*.markdown) CONTENT_TYPE=text/markdown ;;
+    *.csv) CONTENT_TYPE=text/csv ;;
+    *.txt|*.log) CONTENT_TYPE=text/plain ;;
+    *.mp4) CONTENT_TYPE=video/mp4 ;;
+    *.mov) CONTENT_TYPE=video/quicktime ;;
+    *.webm) CONTENT_TYPE=video/webm ;;
+    *) die "cannot infer a content type for $FILE — pass one as the third argument" ;;
+  esac
+fi
+
+FILENAME=$(basename "$FILE")
+# JSON string escaping for the one field that carries arbitrary text.
+FILENAME_JSON=$(printf '%s' "$FILENAME" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')
+
+# ---------------------------------------------------------------------------
+# 1. register
+# ---------------------------------------------------------------------------
+BODY=$(printf '{"filename":"%s","content_type":"%s","size_bytes":%s,"sha256":"%s"}' \
+  "$FILENAME_JSON" "$CONTENT_TYPE" "$SIZE" "$SHA")
+
+note "registering $FILENAME ($SIZE bytes, $CONTENT_TYPE)"
+RESPONSE=$(curl -sS -X POST "$API_URL/v1/agent/assignments/$ASSIGNMENT_ID/artifacts" \
+  -H "authorization: Bearer $KLANK_API_KEY" \
+  -H "content-type: application/json" \
+  -H "accept: application/json" \
+  -H "idempotency-key: $SHA" \
+  -d "$BODY" \
+  -w '\n%{http_code}') || die "the register request could not be sent"
+STATUS=$(printf '%s' "$RESPONSE" | tail -n 1)
+PAYLOAD=$(printf '%s' "$RESPONSE" | sed '$d')
+
+case "$STATUS" in
+  20*) ;;
+  *) fail_with "$STATUS" "$PAYLOAD" "register" ;;
+esac
+
+ARTIFACT_ID=$(json_get "$PAYLOAD" ".data.artifact_id")
+UPLOAD_URL=$(json_get "$PAYLOAD" ".data.upload.url")
+[ -n "$ARTIFACT_ID" ] || die "the register response carried no artifact_id"
+
+if [ -z "$UPLOAD_URL" ]; then
+  # `upload` is null once the bytes are finalized: they are already stored and
+  # referenceable. Nothing to do.
+  note "artifact already finalized; nothing to upload"
+  printf '%s\n' "$ARTIFACT_ID"
+  exit 0
+fi
+
+# ---------------------------------------------------------------------------
+# 2. presigned PUT — every returned header, verbatim: they are signed.
+# ---------------------------------------------------------------------------
+HDRS=$(json_headers "$PAYLOAD")
+set --
+if [ -n "$HDRS" ]; then
+  # `set --` is safe here: the original arguments are already in variables.
+  OLDIFS=$IFS
+  IFS='
+'
+  for line in $HDRS; do
+    set -- "$@" -H "$line"
+  done
+  IFS=$OLDIFS
+fi
+
+note "uploading"
+PUT_STATUS=$(curl -sS -X PUT "$@" --upload-file "$FILE" "$UPLOAD_URL" \
+  -o /dev/null -w '%{http_code}') || die "the upload could not be sent"
+case "$PUT_STATUS" in
+  20*) ;;
+  *) note "upload failed: the object store answered HTTP $PUT_STATUS"; exit 1 ;;
+esac
+
+# ---------------------------------------------------------------------------
+# 3. finalize — the platform proves the stored bytes match the claim.
+# ---------------------------------------------------------------------------
+note "finalizing"
+RESPONSE=$(curl -sS -X POST \
+  "$API_URL/v1/agent/assignments/$ASSIGNMENT_ID/artifacts/$ARTIFACT_ID/finalize" \
+  -H "authorization: Bearer $KLANK_API_KEY" \
+  -H "content-type: application/json" \
+  -H "accept: application/json" \
+  -H "idempotency-key: $SHA-finalize" \
+  -d '{}' \
+  -w '\n%{http_code}') || die "the finalize request could not be sent"
+STATUS=$(printf '%s' "$RESPONSE" | tail -n 1)
+PAYLOAD=$(printf '%s' "$RESPONSE" | sed '$d')
+
+case "$STATUS" in
+  20*) ;;
+  *) fail_with "$STATUS" "$PAYLOAD" "finalize" ;;
+esac
+
+note "done — reference it as {\"kind\":\"artifact\",\"artifact_id\":\"$ARTIFACT_ID\"}"
+printf '%s\n' "$ARTIFACT_ID"
