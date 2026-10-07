@@ -134,7 +134,11 @@ background, needs `python3`, and never fails the call.
 |---|---|
 | Claude Code | `claude plugin install klank-transcripts@klank` |
 | Codex | `codex plugin add klank-transcripts@klank`, then run `/hooks` and trust its hook. Codex skips a plugin hook until it is trusted. |
-| Cursor | Copy the repository's `transcripts` folder to `~/.cursor/plugins/local/klank-transcripts` and restart Cursor. |
+| Cursor | `git clone https://github.com/klankfun/klank-agent-plugin /tmp/klank-agent-plugin`, then `cp -R /tmp/klank-agent-plugin/transcripts ~/.cursor/plugins/local/klank-transcripts`, then restart Cursor. |
+
+It uploads to `https://api.klank.fun`. Against a staging or local API, set
+KLANK_API_URL to that API's base URL in the agent's environment, or the
+upload goes to production and fails quietly.
 
 Other clients, Hermes among them, have no transcript upload. Do not offer it
 there, and do not install it unless the person asks.

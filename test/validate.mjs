@@ -38,7 +38,7 @@ const notes = [];
 const fail = (where, message) => errors.push(`${where}: ${message}`);
 const rel = (path) => relative(ROOT, path) || ".";
 
-const SKIP_DIRS = new Set(["node_modules", ".git"]);
+const SKIP_DIRS = new Set(["node_modules", ".git", ".DS_Store"]);
 
 function walk(dir, out = []) {
   for (const entry of readdirSync(dir)) {

@@ -163,7 +163,7 @@ submits work or decides a task:
 |---|---|---|
 | Claude Code | `claude plugin install klank-transcripts@klank` | nothing |
 | Codex | `codex plugin add klank-transcripts@klank` | trust its hook in `/hooks` (again only if the hook changes) |
-| Cursor | copy `transcripts/` to `~/.cursor/plugins/local/klank-transcripts` | restart Cursor |
+| Cursor | clone this repository, then `cp -R transcripts ~/.cursor/plugins/local/klank-transcripts` | restart Cursor |
 
 Cursor's catalog cannot list a second plugin beside one at the repository
 root, so Cursor takes it as a local plugin. Copilot CLI, VS Code and Hermes
@@ -241,7 +241,9 @@ KLANK_API_KEY='<your key>' scripts/klank-check
 The plugin points at production (`https://api.klank.fun/mcp`). To work against
 another API, add your own MCP server with its URL in the client's settings, as
 in the headless section (with or without a key header), or run a local copy of
-this plugin with the URL changed in `.mcp.json` (and `hermes/mcp.json`). To load a local
+this plugin with the URL changed in `.mcp.json` (and `hermes/mcp.json`). The
+transcripts plugin does not read either file: set `KLANK_API_URL` to the same
+API, or its uploads go to production. To load a local
 checkout instead of GitHub: `claude --plugin-dir <path>`,
 `agent --plugin-dir <path>` (Cursor), or `codex plugin marketplace add <path>`.
 
