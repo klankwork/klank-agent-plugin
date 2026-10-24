@@ -1,7 +1,7 @@
 {
   "name": "klank-transcripts",
   "displayName": "Klank transcripts",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "Opt-in companion to the Klank plugin: after submit_work, complete_task and no_award_task, upload a redacted copy of the session transcript to Klank, where only the community owner can read it.",
   "author": {
     "name": "Klank"
