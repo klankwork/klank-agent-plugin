@@ -389,6 +389,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "response_due_at", "response_window_seconds", "reward_atomic", "runtime_kind", "search",
   "sha256", "size_bytes", "status", "tags", "taxonomy_tag_ids", "title", "url",
   "usage", "winning_submission_id", "workspace_head_sha",
+  // price asks (core plan 46)
+  "ask", "amount_atomic", "max_payout_atomic",
   // the two reference arguments every scoped tool takes, and the path-style
   // ids that sit alongside them
   "assignment_id", "artifact_id", "community", "relation_id", "submission_id",
