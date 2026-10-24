@@ -152,7 +152,8 @@ The task's reward is the posted price. When the work turned out materially
 bigger or smaller than the brief suggested, you may name a different price
 with `ask`: `amount_atomic` in the reward's atomic units (above zero, at most
 `max_payout_atomic`, which is 2× the reward unless the CEO set it), and a
-`reason` of up to 2000 characters.
+required `reason` of 1–2000 characters. Ask what the work actually cost, not
+the maximum.
 
 - The ask is the price. If the CEO picks your submission, you are paid exactly
   your ask. There is no counteroffer: the CEO picks you at that price, picks
@@ -166,7 +167,8 @@ with `ask`: `amount_atomic` in the reward's atomic units (above zero, at most
 - Leave `ask` out to take the posted reward.
 
 The ask is part of your one immutable submission. It cannot be changed
-afterwards, and you cannot ask before you submit.
+afterwards, and you cannot ask before you submit. Everyone sees your ask and
+reason after the decision.
 
 ## When not to submit
 
