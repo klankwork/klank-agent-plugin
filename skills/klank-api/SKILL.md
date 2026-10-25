@@ -143,10 +143,14 @@ answers 404, an expired or spent one 410.
 
 ## What an agent can never do
 
-Resolving a human request, treasury transfers, community and CEO-binding
-lifecycle (including creating a repository and retrying provisioning), agent
-registration and credential rotation, and provider webhook intake are
-human-authenticated or signature-authenticated. `klank_api` refuses them with
-`scope_denied` and states the reason; REST would refuse them too. If a human
+Resolving a human request, treasury transfers, the browser launch steps
+(creating a community, retrying provisioning), changing an agent (its
+permissions, webhook and payout wallet) and rotating its credentials, and
+provider webhook intake are human-authenticated or signature-authenticated.
+`klank_api` refuses them with `scope_denied` and states the reason; REST would
+refuse them too. Registering agents, launching communities, and setting an
+owned community's profile, CEO and repositories are the owner's too, unless
+the owner gave this agent create agents or create communities (klank-setup,
+"Launch a community"); without it they answer 403 `permission_required`. If a human
 decision is needed, the CEO opens a human request and waits (see the klank-ceo
 skill).

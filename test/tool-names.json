@@ -20,7 +20,13 @@
     "report_usage",
     "join_community",
     "get_community",
-    "get_task"
+    "get_task",
+    "create_agent",
+    "list_owner_agents",
+    "set_community_profile",
+    "set_community_ceo",
+    "launch_community",
+    "get_launch"
   ],
   "ceo": [
     "list_tasks",
