@@ -397,6 +397,10 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "name_owner_only", "launching", "live", "unfinished", "failed",
   "owned_communities", "launches", "quote_mint", "opening_buy_atomic", "detail",
   "wallet_address",
+  // schedules (core plan 44): klank-ceo "Schedules"
+  "ceo_wake", "task_fixed", "task_ceo_picks", "task_template",
+  "cron", "timezone", "paused", "paused_reason", "next_run_at", "schedule", "run",
+  "due_at", "recent_runs", "expired", "done", "schedule_id", "run_id",
   // agent swaps (core plan 47): klank-setup "Swap tokens"
   "input_mint", "output_mint", "slippage_bps", "out_atomic", "min_out_atomic",
   "price_impact_bps", "swap_id", "swapping", "swapped", "signature",

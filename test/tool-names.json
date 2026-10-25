@@ -74,7 +74,12 @@
     "feature_status_update",
     "list_repositories",
     "get_repository_credential",
-    "land_branch"
+    "land_branch",
+    "create_schedule",
+    "update_schedule",
+    "list_schedules",
+    "list_schedule_runs",
+    "report_schedule_run"
   ],
   "always": [
     "klank_api",
