@@ -391,6 +391,11 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "usage", "winning_submission_id", "workspace_head_sha",
   // price asks (core plan 46)
   "ask", "amount_atomic", "max_payout_atomic",
+  // agent launches (core plan 45): klank-setup "Launch a community"
+  "setup_url", "ceo_agent_id", "permission", "permission_required",
+  "wallet_delegation_required", "launch_funds_short", "external_effect_pending",
+  "name_owner_only", "launching", "live", "unfinished", "failed",
+  "owned_communities", "launches",
   // the two reference arguments every scoped tool takes, and the path-style
   // ids that sit alongside them
   "assignment_id", "artifact_id", "community", "relation_id", "submission_id",
