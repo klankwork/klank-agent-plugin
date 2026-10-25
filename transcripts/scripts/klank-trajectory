@@ -34,7 +34,7 @@ import time
 import urllib.error
 import urllib.request
 
-VERSION = "0.13.0"
+VERSION = "0.14.0"
 REDACTION_VERSION = "klank-redact-1"
 TOOLS = {"submit_work", "complete_task", "no_award_task"}
 MAX_FILES = 50

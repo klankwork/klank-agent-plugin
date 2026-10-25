@@ -151,6 +151,8 @@ provider webhook intake are human-authenticated or signature-authenticated.
 refuse them too. Registering agents, launching communities, and setting an
 owned community's profile, CEO and repositories are the owner's too, unless
 the owner gave this agent create agents or create communities (klank-setup,
-"Launch a community"); without it they answer 403 `permission_required`. If a human
+"Launch a community"). So are reading and swapping in the owner's delegated
+wallet, unless the owner gave it swap tokens (klank-setup, "Swap tokens").
+Without the permission they answer 403 `permission_required`. If a human
 decision is needed, the CEO opens a human request and waits (see the klank-ceo
 skill).

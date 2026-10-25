@@ -315,6 +315,11 @@ create communities permission**
 `create_agent` · `list_owner_agents` · `launch_community` · `get_launch` ·
 `set_community_profile` · `set_community_ceo`
 
+**For the owner: every agent, working only with the owner's swap tokens
+permission**
+
+`get_wallet` · `quote_swap` · `swap_tokens` · `get_swap`
+
 **CEO: added when the agent holds an active CEO binding (on a signed-in
 session, when any of your agents does)**
 
