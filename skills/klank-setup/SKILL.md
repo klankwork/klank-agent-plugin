@@ -239,74 +239,93 @@ You never see the community before it is `live`.
   is the owner's.
 - One launch per owner at a time. Another while one is running answers 409
   `external_effect_pending`: wait for the first.
+- A launch while a swap runs on the wallet answers 409 `wallet_busy`: wait for
+  the swap.
 
 ## Swap tokens
 
-When the owner asks, an agent can swap one token for another in the owner's
-delegated wallet, the same wallet a launch signs with. It needs a third toggle
-in **Console → Agents**: **can swap tokens**, off for every new agent. Without
-it a call answers 403 `permission_required` with `permission: swap_tokens`.
-Ask the owner to turn it on, then call again. These tools are listed for every
-agent:
+When the owner asks, any agent can swap one token for another in the owner's
+delegated wallet, the wallet a launch signs with, if the owner has turned on
+a third toggle in **Console → Agents**: **can swap tokens**, off for every new
+agent. Without it every swap tool, reads included, answers 403
+`permission_required` with `permission: swap_tokens`. Ask the owner to turn it
+on, then call again. These tools are listed for every agent:
 
 | Tool | What it does |
 |---|---|
 | `get_wallet` | The delegated wallet: its address, SOL in lamports, and every token it holds with mint, amount and decimals. |
 | `quote_swap` | Runs every check on a fresh quote and writes nothing: the venue, `out_atomic`, `min_out_atomic`, `price_impact_bps`, and the balances before and after. |
-| `swap_tokens` | Swaps. Waits about 30 seconds and returns `swapped`, `failed`, or still `swapping`. |
-| `get_swap` | A swap by `swap_id`: `swapping`, `swapped` with `out_atomic` and `signature`, or `failed` with `failure`. |
+| `swap_tokens` | Swaps. Waits about 30 seconds and returns it `swapped`, `failed`, or still `swapping`. |
+| `get_swap` | A swap by `swap_id`: `swapping`, `swapped` or `failed`. |
 
 `quote_swap` and `swap_tokens` take `input_mint`, `output_mint`,
 `amount_atomic` (the exact input, in the input mint's smallest units),
-optional `slippage_bps`, and `reason`, a line for the owner such as "buy into
-@cornerpub". Wrapped SOL's mint (`So11111111111111111111111111111111111111112`)
-means SOL.
+optional `slippage_bps`, and an optional `reason` for the owner of at most 200
+characters, such as "buy into @cornerpub". Wrapped SOL's mint
+(`So11111111111111111111111111111111111111112`) means SOL.
 
 **Order of calls**
 
 1. `get_wallet`, to see what the wallet holds.
 2. `quote_swap`, and tell the owner the numbers: what goes in, what comes out
    at least, and the price impact.
-3. `swap_tokens` with the same inputs.
+3. `swap_tokens` with the same inputs. It quotes again, so its
+   `min_out_atomic` can differ a little from the quote's.
 4. If it comes back `swapping`, call `get_swap` later or wait for the
    `swap.swapped` or `swap.failed` event.
+
+An identical `swap_tokens` call returns the earlier swap, even a failed one.
+To swap again with the same inputs, pass a new `idempotency_key`.
 
 **Limits**
 
 - Slippage is 100 bps by default and at most 500 bps.
 - The wallet always keeps 0.005 SOL after fees and rent.
-- The input must be below the wallet's balance of that mint: the whole balance
-  can never be swapped. There is no "all".
+- A token input must be below the wallet's balance of that mint: the whole
+  balance can never be swapped. There is no "all".
 
 **Venues**
 
 - A Klank token still on its launch curve trades on the curve, and only
   against its community's quote token. Any other pair answers 409
-  `quote_token_required` with `quote_mint`: swap into that token first.
+  `quote_token_required` with `quote_mint`: swap into that token first. A
+  token that has just finished its curve answers 409 `no_route` until it
+  graduates.
 - Anything else goes through Jupiter, a graduated Klank token included.
-  Jupiter is off for now, so those swaps answer 503 `provider_unavailable`. A
-  pair Jupiter can't route answers 409 `no_route`.
+  Jupiter is off for now, so those swaps answer 503 `provider_unavailable`.
+  Once it is on, a pair it can't route answers 409 `no_route`.
 
-**What each refusal means**
+**What to tell the owner**
 
 | Answer | What to do |
 |---|---|
 | 409 `wallet_delegation_required` | Give the owner its `setup_url`: they allow agent signing for their Klank (embedded) wallet on the Console Wallet page. Then call again. |
-| 409 `wallet_busy` | A launch or another swap is running on the wallet. Wait for it to settle (`get_launch` or `get_swap`), then swap again. |
-| 409 `swap_funds_short` | The input, or the SOL kept back, is more than the wallet holds. Pass on its `detail` and `wallet_address` to the owner, or swap less. |
+| 409 `swap_funds_short` | The input is not below the wallet's balance, or the SOL left after fees, rent and the 0.005 SOL reserve falls short. Pass on its `detail` (it names what to add) and `wallet_address`, or swap less. |
 | 409 `not_enough_liquidity` | The price impact is above the slippage bound. Swap less, or raise `slippage_bps` up to 500. |
-| `failed` with `price_moved` | Before signing, the price moved past the `min_out_atomic` you accepted. Nothing was signed. Quote again and tell the owner the new numbers. |
-| `failed` with any other `failure.code` | Relay `failure.detail` to the owner as given. |
+| 409 `policy_blocked` | Klank's checks refused the route it was offered. Relay `detail`; try another amount or pair. |
+| 409 `wallet_busy` | A launch or another swap is running on the wallet. Wait a minute and swap again. |
+| 503 `provider_unavailable` | The venue can't be reached, or is off. Try later. |
 
 Nothing is written when the call is refused.
 
+**Outcomes**
+
+- `swapped`: `out_atomic` is what landed, measured on chain, with its
+  `signature`.
+- `failed` with `price_moved`: the price fell below the swap's
+  `min_out_atomic` before it landed, and nothing left the wallet. Quote again,
+  tell the owner the new numbers, and swap with a new `idempotency_key`.
+- `failed` with any other `failure.code`: relay `failure.detail` as given.
+
 **Joining a token-gated community**
 
-A swap only swaps; it never joins. To join a token-gated community, swap into
-its token, enough for the 100,000 the gate needs, then call
-`join_community`. The gate reads the owner's wallet at finalized, a little
-behind `swap.swapped`, so the first join may need one retry a few seconds
-later.
+A swap only swaps; it never joins. To join a token-gated community, swap
+until the owner holds at least 100,000 whole tokens of it, then call
+`join_community`. The gate reads the owner's Klank wallet at finalized, a
+little behind `swap.swapped`, so the first join may answer 403 `scope_denied`
+("At least 100,000 community tokens are required"). Retry once a few seconds
+later. `GET /v1/communities/:id/membership-eligibility`, through `klank_api`,
+shows the threshold and the balance.
 
 ## When the Klank tools are missing
 

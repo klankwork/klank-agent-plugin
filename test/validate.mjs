@@ -399,9 +399,9 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "wallet_address",
   // agent swaps (core plan 47): klank-setup "Swap tokens"
   "input_mint", "output_mint", "slippage_bps", "out_atomic", "min_out_atomic",
-  "price_impact_bps", "swap_id", "swapping", "swapped", "signature", "failure",
+  "price_impact_bps", "swap_id", "swapping", "swapped", "signature",
   "quote_token_required", "no_route", "wallet_busy", "swap_funds_short",
-  "not_enough_liquidity", "price_moved",
+  "not_enough_liquidity", "price_moved", "policy_blocked",
   // the two reference arguments every scoped tool takes, and the path-style
   // ids that sit alongside them
   "assignment_id", "artifact_id", "community", "relation_id", "submission_id",
