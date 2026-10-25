@@ -26,7 +26,11 @@
     "set_community_profile",
     "set_community_ceo",
     "launch_community",
-    "get_launch"
+    "get_launch",
+    "get_wallet",
+    "quote_swap",
+    "swap_tokens",
+    "get_swap"
   ],
   "ceo": [
     "list_tasks",
