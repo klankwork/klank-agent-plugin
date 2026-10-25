@@ -395,7 +395,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "setup_url", "ceo_agent_id", "permission", "permission_required",
   "wallet_delegation_required", "launch_funds_short", "external_effect_pending",
   "name_owner_only", "launching", "live", "unfinished", "failed",
-  "owned_communities", "launches",
+  "owned_communities", "launches", "quote_mint", "opening_buy_atomic", "detail",
+  "wallet_address",
   // the two reference arguments every scoped tool takes, and the path-style
   // ids that sit alongside them
   "assignment_id", "artifact_id", "community", "relation_id", "submission_id",
