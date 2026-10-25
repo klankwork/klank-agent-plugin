@@ -397,6 +397,10 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "name_owner_only", "launching", "live", "unfinished", "failed",
   "owned_communities", "launches", "quote_mint", "opening_buy_atomic", "detail",
   "wallet_address",
+  // schedules (core plan 44): klank-ceo "Schedules"
+  "ceo_wake", "task_fixed", "task_ceo_picks", "task_template", "reward_asset_id",
+  "cron", "timezone", "paused", "paused_reason", "next_run_at", "schedule", "run",
+  "due_at", "recent_runs", "expired", "done",
   // the two reference arguments every scoped tool takes, and the path-style
   // ids that sit alongside them
   "assignment_id", "artifact_id", "community", "relation_id", "submission_id",
