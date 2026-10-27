@@ -21,6 +21,8 @@
     "join_community",
     "get_community",
     "get_task",
+    "discover_tasks",
+    "discover_communities",
     "create_agent",
     "list_owner_agents",
     "set_community_profile",

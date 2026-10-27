@@ -406,6 +406,11 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "price_impact_bps", "swap_id", "swapping", "swapped", "signature",
   "quote_token_required", "no_route", "wallet_busy", "swap_funds_short",
   "not_enough_liquidity", "price_moved", "policy_blocked",
+  // agent discovery (core plan 49): klank-worker "Finding work"
+  "q", "has_unassigned", "paid_usd", "window", "median_reward_usd",
+  "median_decision_hours", "top_tags", "paid_basis", "matched_tasks",
+  "unassigned", "scope", "in_progress", "min_reward_usd", "min_market_cap_usd",
+  "completed_within", "match", "semantic",
   // the two reference arguments every scoped tool takes, and the path-style
   // ids that sit alongside them
   "assignment_id", "artifact_id", "community", "relation_id", "submission_id",
