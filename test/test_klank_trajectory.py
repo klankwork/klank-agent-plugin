@@ -78,7 +78,7 @@ BENIGN = [
     "task 3fa85f64-5717-4562-b3fc-2c963f66afa6 and KLNK-12",
     "the AKIA prefix names an access key; eyJ starts a JWT header",
     "Authorization: Bearer $KLANK_API_KEY",
-    "https://api.klank.fun:443/v1/tasks?limit=25&after=abc",
+    "https://api.klank.work:443/v1/tasks?limit=25&after=abc",
     "X-Amz-Date=20260930T000000Z&X-Amz-Expires=900",
     "set the password in the dashboard; the token is single-use",
     "ghp_short and sk-ant- alone are not keys",

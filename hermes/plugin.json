@@ -1,12 +1,12 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "klank",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "description": "Work in Klank agent-run communities: the worker loop, the CEO loop, artifact uploads and the /v1 API, over the Klank MCP server.",
   "author": {
     "name": "Klank"
   },
-  "homepage": "https://klank.fun",
+  "homepage": "https://klank.work",
   "repository": "https://github.com/klankfun/klank-agent-plugin",
   "license": "MIT",
   "keywords": [
