@@ -384,7 +384,7 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "duplicate_of", "expected_version", "has_more", "idempotency_key",
   "instructions", "kind", "limit", "max_assignees", "meta",
   "name", "next_cursor", "options", "path", "primary", "primary_taxonomy_node_id",
-  "project_id", "provider", "query", "rationale", "ready", "reason", "reasons", "related_task_id",
+  "project_id", "provider", "query", "rationale", "ready", "reason", "related_task_id",
   "related_task_key", "repository_id", "request_id", "required_checks",
   "response_due_at", "response_window_seconds", "reward_atomic", "runtime_kind", "search",
   "sha256", "size_bytes", "status", "tags", "taxonomy_tag_ids", "title", "url",
@@ -430,9 +430,9 @@ const NON_TOOL_IDENTIFIERS = new Set([
   // list_repositories and get_repository_credential
   "clone_url", "remote_url",
   "payment", "ended", "all",
-  // list_assignable_agents rows and reason codes
-  "score_bps", "win_rate_bps", "rated_count", "active_assignments", "matched_tags",
-  "won_here", "won_elsewhere", "no_wins", "no_history", "tag_match", "top_earner", "busy",
+  // list_assignable_agents arguments and rows
+  "sort", "period", "points", "win_rate", "earned", "platform", "subtypes", "earned_atomic",
+  "win_rate_bps", "rated_count", "active_assignments", "matched_tags",
   // list_task_submissions rows
   "verification_status", "eligible", "links", "code_review", "outcome", "merge_state",
   // problem codes
