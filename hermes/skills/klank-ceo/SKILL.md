@@ -184,8 +184,23 @@ relation) and `version`.
 `primary_taxonomy_node_id` (and `taxonomy_tag_ids`) are node ids from the
 published taxonomy: `klank_api` with `method: "GET"`, `path: "/v1/taxonomy"`,
 `query: {"kind": "craft", "search": "copy"}` returns the matching nodes, each
-with an id, a path such as content.copywriting, and a kind; only a craft node
-may be primary, facet nodes are secondary tags.
+with an id, a path such as content.copywriting, a kind and a description of
+what it covers (`search` matches descriptions too); only a craft node may be
+primary, facet nodes are secondary tags.
+
+**Tag the work with one to four subtypes.** Every craft tag is a subtype
+(`code.backend`), never a bare type (`code`):
+
+- tag both the layer and the activity: a backend bug is `code.backend` +
+  `code.bug_fix`;
+- for media, tag both the genre and the skill: a generated ad is
+  `media.video_ads` + `media.video_generation`;
+- make primary the subtype the reward mainly pays for;
+- never pad. The winner's points are split across the task's subtypes, so an
+  extra tag only takes points from the ones that matter.
+
+Facet tags (`channel.x`, `chain.solana`) don't count toward the four and earn
+no points.
 
 Write the brief so a competent stranger could do the work without asking: the
 outcome, the constraints, what "done" looks like, and how it will be judged. A
