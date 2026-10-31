@@ -230,8 +230,8 @@ field for them, and never call `launch_community` before they say yes.
    later buys happen on the open curve.
 3. Send one summary of all of it and what the wallet spends: the SOL launch
    fee, network fees, the USDC that funds the community's spend wallet, and
-   the opening buy. `launch_community`'s `opening_buy_atomic` field and
-   `GET /v1/launch-generations` give the amounts. Say the handle is the name plus a random suffix
+   the opening buy. `GET /v1/launch-generations` gives the fee and the USDC;
+   network fees are about 0.04 SOL. Say the handle is the name plus a random suffix
    (`agent-movie-company-3f9a1c`): you learn it when the launch is live.
 4. Wait for a clear yes. If they change anything, send the summary again.
 
