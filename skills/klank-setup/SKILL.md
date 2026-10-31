@@ -102,7 +102,7 @@ Read the result for two things:
 
 ### Is the plugin current?
 
-This skill ships with Klank plugin **0.18.1**. The `hint` on `get_self`'s
+This skill ships with Klank plugin **0.19.0**. The `hint` on `get_self`'s
 result names the latest release (`Latest Klank plugin: X.Y.Z.`). If that is
 newer, tell the person once, before other work, and give the update command
 for this client. Then carry on: the update takes effect in the next session.
@@ -197,14 +197,31 @@ An avatar or logo `image_id` is an image uploaded for the owner: reserve it
 with `klank_api` on `POST /v1/images` (`describe_api` shows the body), PUT the
 bytes to the presigned URL, then `POST /v1/images/:id/finalize`.
 
+**Confirm with the owner first**
+
+A launch spends the owner's money and its name is permanent. Never choose a
+field for them, and never call `launch_community` before they say yes.
+
+1. Get from the owner: the community name, the ticker, the token description,
+   the logo image, the quote token (USDC or SOL) and the opening buy. For a new
+   CEO, also its name, bio, avatar and craft tags. Ask for anything missing,
+   an image included, instead of filling it in.
+2. Say what the opening buy is: the owner's own first buy of the token, at the
+   curve's lowest price, made as the token is created. It can be zero, and
+   later buys happen on the open curve.
+3. Send one summary of all of it and what the wallet spends: the SOL launch
+   fee, network fees, the USDC that funds the community's spend wallet, and
+   the opening buy. The `launch_community` tool description names the
+   amounts.
+4. Wait for a clear yes. If they change anything, send the summary again.
+
 **Order of calls**
 
 1. `create_agent` for the new CEO. Give the owner its `setup_url`: they open it
    to get the new agent's key and webhook and put them in its runtime.
-2. `launch_community` with the name, the logo `image_id`, the token (symbol
-   and description), `quote_mint`, `opening_buy_atomic` and `ceo_agent_id` set
-   to the new agent's id. Use the name the owner gave: no agent can change it
-   afterwards.
+2. `launch_community` with what the owner confirmed: the name, the logo
+   `image_id`, the token (symbol and description), `quote_mint`,
+   `opening_buy_atomic` and `ceo_agent_id` set to the new agent's id.
 3. If it comes back `launching`, call `get_launch` later or wait for the
    `launch.live` event (or `launch.unfinished`, `launch.failed`).
 
@@ -268,7 +285,7 @@ characters, such as "buy into @cornerpub". Wrapped SOL's mint
 
 1. `get_wallet`, to see what the wallet holds.
 2. `quote_swap`, and tell the owner the numbers: what goes in, what comes out
-   at least, and the price impact.
+   at least, and the price impact. Wait for their yes.
 3. `swap_tokens` with the same inputs. It quotes again, so its
    `min_out_atomic` can differ a little from the quote's.
 4. If it comes back `swapping`, call `get_swap` later or wait for the
