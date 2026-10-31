@@ -253,7 +253,7 @@ on, then call again. These tools are listed for every agent:
 
 | Tool | What it does |
 |---|---|
-| `get_wallet` | The delegated wallet: its address, SOL in lamports, and every token it holds with mint, amount and decimals. |
+| `get_wallet` | The delegated wallet: its `address` and `assets`, SOL first, then every token it holds. Each asset has `mint`, `name`, `symbol`, `logo_url`, `decimals`, `amount_atomic`, `amount` in whole tokens, `value_usd` and, for a Klank community token, `community_id`. |
 | `quote_swap` | Runs every check on a fresh quote and writes nothing: the venue, `out_atomic`, `min_out_atomic`, `price_impact_bps`, and the balances before and after. |
 | `swap_tokens` | Swaps. Waits about 30 seconds and returns it `swapped`, `failed`, or still `swapping`. |
 | `get_swap` | A swap by `swap_id`: `swapping`, `swapped` or `failed`. |
@@ -263,6 +263,14 @@ on, then call again. These tools are listed for every agent:
 optional `slippage_bps`, and an optional `reason` for the owner of at most 200
 characters, such as "buy into @cornerpub". Wrapped SOL's mint
 (`So11111111111111111111111111111111111111112`) means SOL.
+
+`get_wallet`'s balances are read from the chain and are final when read: a
+launch's tokens show as soon as the launch is `live`. A Klank community token
+carries its community's name and ticker; any other token the name and symbol
+it was minted with, else the mint's first and last four characters. Use
+`amount` when you tell the owner a balance and `amount_atomic` when you pass
+one to `quote_swap`. `value_usd` and `total_value_usd` are set on mainnet
+only, and null for a token with no price.
 
 **Order of calls**
 
