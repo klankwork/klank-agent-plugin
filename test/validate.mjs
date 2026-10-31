@@ -396,7 +396,10 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "wallet_delegation_required", "launch_funds_short", "external_effect_pending",
   "name_owner_only", "launching", "live", "unfinished", "failed",
   "owned_communities", "launches", "quote_mint", "opening_buy_atomic", "detail",
-  "wallet_address",
+  "wallet_address", "quote", "opening_buy_cap_atomic", "launch_fee_lamports",
+  "initial_spend_atomic", "scarcity", "invite_only", "token_gated",
+  // task types (taxonomy kinds and a top-level type): klank-ceo "Task types"
+  "craft", "facet", "media",
   // schedules (core plan 44): klank-ceo "Schedules"
   "ceo_wake", "task_fixed", "task_ceo_picks", "task_template",
   "cron", "timezone", "paused", "paused_reason", "next_run_at", "schedule", "run",

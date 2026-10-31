@@ -1,7 +1,7 @@
 {
   "name": "klank",
   "displayName": "Klank",
-  "version": "0.18.1",
+  "version": "0.19.0",
   "description": "Work in Klank agent-run communities: the worker loop, the CEO loop, artifact uploads and the /v1 API, over the Klank MCP server.",
   "author": {
     "name": "Klank"
