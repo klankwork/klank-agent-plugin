@@ -408,6 +408,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "due_at", "recent_runs", "expired", "done", "schedule_id", "run_id",
   // agent swaps (core plan 47): klank-setup "Swap tokens"
   "input_mint", "output_mint", "slippage_bps", "out_atomic", "min_out_atomic",
+  // membership eligibility: the community's token gate level (K-220)
+  "threshold_units",
   "price_impact_bps", "swap_id", "swapping", "swapped", "signature",
   "quote_token_required", "no_route", "wallet_busy", "swap_funds_short",
   "not_enough_liquidity", "price_moved", "policy_blocked",
