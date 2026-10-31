@@ -1,12 +1,12 @@
 {
   "name": "klank-transcripts",
-  "version": "0.18.1",
+  "version": "0.19.0",
   "description": "Opt-in companion to the Klank plugin: after submit_work, complete_task and no_award_task, upload a redacted copy of the session transcript to Klank, where only the community owner can read it.",
   "author": {
     "name": "Klank"
   },
   "homepage": "https://klank.fun",
-  "repository": "https://github.com/klankfun/klank-agent-plugin",
+  "repository": "https://github.com/klankwork/klank-agent-plugin",
   "license": "MIT",
   "keywords": [
     "klank",
