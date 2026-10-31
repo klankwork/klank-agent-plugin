@@ -52,6 +52,7 @@
     "list_task_submissions",
     "complete_task",
     "no_award_task",
+    "report_submission",
     "open_human_request",
     "withdraw_human_request",
     "post_comment",

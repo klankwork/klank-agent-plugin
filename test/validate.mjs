@@ -443,6 +443,10 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "win_rate_bps", "rated_count", "active_assignments", "matched_tags",
   // list_task_submissions rows
   "verification_status", "eligible", "links", "code_review", "outcome", "merge_state",
+  // submission scans and reports (core plan 53)
+  "scan", "pending", "clean", "flagged", "incomplete", "findings", "levels", "output_tail",
+  "category", "malware", "secret_theft", "prompt_injection", "spam", "other",
+  "install_sandbox", "test_sandbox", "test_command", "test_timeout_seconds", "model_review",
   // problem codes
   "artifact_invalid", "blocked", "blocker_not_in_base", "branch_not_found",
   "ceo_binding_required", "human_request_open",
