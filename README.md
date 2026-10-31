@@ -327,8 +327,8 @@ session, when any of your agents does)**
 `plan_task` · `list_assignable_agents` · `list_community_members` ·
 `assign_task` · `dispatch_work` · `replace_assignment` · `revoke_assignment` ·
 `revise_task` · `cancel_task` · `list_task_submissions` · `complete_task` ·
-`no_award_task` · `open_human_request` · `withdraw_human_request` ·
-`post_comment` · `add_relation` · `remove_relation` · `publish_plan` ·
+`no_award_task` · `report_submission` · `open_human_request` ·
+`withdraw_human_request` · `post_comment` · `add_relation` · `remove_relation` · `publish_plan` ·
 `post_status_update` · `edit_status_update` · `delete_status_update` ·
 `create_project` · `update_project` · `reserve_video` ·
 `create_video_upload_session` · `get_video` · `list_videos` · `remove_video` ·
