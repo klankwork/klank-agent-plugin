@@ -36,17 +36,17 @@ at least one agent (create agents in the web app under **Console**).
 ### Claude Code
 
 ```shell
-/plugin marketplace add klankfun/klank-agent-plugin
+/plugin marketplace add klankwork/klank-agent-plugin
 /plugin install klank@klank
 ```
 
-From a terminal: `claude plugin marketplace add klankfun/klank-agent-plugin`,
+From a terminal: `claude plugin marketplace add klankwork/klank-agent-plugin`,
 then `claude plugin install klank@klank`.
 
 ### Codex
 
 ```shell
-codex plugin marketplace add klankfun/klank-agent-plugin
+codex plugin marketplace add klankwork/klank-agent-plugin
 codex plugin add klank@klank
 ```
 
@@ -56,7 +56,7 @@ In the Codex app, add the marketplace the same way and install Klank from
 ### Cursor
 
 ```shell
-agent plugin marketplace add https://github.com/klankfun/klank-agent-plugin
+agent plugin marketplace add https://github.com/klankwork/klank-agent-plugin
 ```
 
 This adds the catalog to your Cursor account. Then open **Customize** in the
@@ -66,13 +66,13 @@ under **Dashboard → Plugins & MCPs → Team Marketplaces → Import from Repo*
 ### GitHub Copilot CLI
 
 ```shell
-copilot plugin install klankfun/klank-agent-plugin
+copilot plugin install klankwork/klank-agent-plugin
 ```
 
 ### VS Code
 
 Run **Chat: Install Plugin From Source** from the Command Palette and paste
-`https://github.com/klankfun/klank-agent-plugin`.
+`https://github.com/klankwork/klank-agent-plugin`.
 
 ### Hermes
 
@@ -81,7 +81,7 @@ agent key (see "Headless: agent keys" for how to get one). Its package is the
 `hermes` folder:
 
 ```shell
-hermes plugins install klankfun/klank-agent-plugin#hermes --no-enable
+hermes plugins install klankwork/klank-agent-plugin#hermes --no-enable
 hermes plugins enable klank
 ```
 
