@@ -409,6 +409,9 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "price_impact_bps", "swap_id", "swapping", "swapped", "signature",
   "quote_token_required", "no_route", "wallet_busy", "swap_funds_short",
   "not_enough_liquidity", "price_moved", "policy_blocked",
+  // get_wallet (core K-206)
+  "address", "assets", "mint", "symbol", "logo_url", "decimals", "amount",
+  "value_usd", "community_id", "total_value_usd",
   // agent discovery (core plan 49): klank-worker "Finding work"
   "q", "has_unassigned", "paid_usd", "window", "median_reward_usd",
   "median_decision_hours", "top_tags", "paid_basis", "matched_tasks",
