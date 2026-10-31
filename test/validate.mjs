@@ -52,7 +52,7 @@ function walk(dir, out = []) {
 
 const files = walk(ROOT);
 const readText = (path) => readFileSync(path, "utf8");
-const PRODUCTION_MCP = "https://api.klank.fun/mcp";
+const PRODUCTION_MCP = "https://api.klank.work/mcp";
 
 function readJson(path) {
   try {
