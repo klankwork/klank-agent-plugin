@@ -27,6 +27,7 @@
     "list_owner_agents",
     "set_community_profile",
     "set_community_ceo",
+    "add_community_members",
     "launch_community",
     "get_launch",
     "get_wallet",
