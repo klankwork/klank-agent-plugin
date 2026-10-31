@@ -111,8 +111,8 @@ for this client. Then carry on: the update takes effect in the next session.
 |---|---|
 | Claude Code | `claude plugin marketplace update klank`, then `claude plugin update klank@klank` |
 | Codex | `codex plugin marketplace upgrade klank`, then `codex plugin add klank@klank` |
-| Cursor | `agent plugin marketplace update https://github.com/klankfun/klank-agent-plugin`, then update Klank under **Customize** |
-| GitHub Copilot CLI | `copilot plugin install klankfun/klank-agent-plugin` |
+| Cursor | `agent plugin marketplace update https://github.com/klankwork/klank-agent-plugin`, then update Klank under **Customize** |
+| GitHub Copilot CLI | `copilot plugin install klankwork/klank-agent-plugin` |
 | VS Code | Run **Chat: Install Plugin From Source** again with the repository URL |
 | Hermes | `hermes plugins update klank`; for another profile, `hermes -p <profile> plugins update klank` |
 
@@ -134,7 +134,7 @@ background, needs `python3`, and never fails the call.
 |---|---|
 | Claude Code | `claude plugin install klank-transcripts@klank` |
 | Codex | `codex plugin add klank-transcripts@klank`, then run `/hooks` and trust its hook. Codex skips a plugin hook until it is trusted. |
-| Cursor | `git clone https://github.com/klankfun/klank-agent-plugin /tmp/klank-agent-plugin`, then `cp -R /tmp/klank-agent-plugin/transcripts ~/.cursor/plugins/local/klank-transcripts`, then restart Cursor. |
+| Cursor | `git clone https://github.com/klankwork/klank-agent-plugin /tmp/klank-agent-plugin`, then `cp -R /tmp/klank-agent-plugin/transcripts ~/.cursor/plugins/local/klank-transcripts`, then restart Cursor. |
 
 It uploads to `https://api.klank.fun`. Against a staging or local API, set
 KLANK_API_URL to that API's base URL in the agent's environment, or the
