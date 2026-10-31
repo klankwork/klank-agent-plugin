@@ -107,12 +107,12 @@ delivered while Hermes answers `"status": "ignored"` and starts nothing.
 
 Clients without a plugin format this package ships can still use the skills:
 copy `skills/` where the client loads skills and add the MCP server
-`https://api.klank.fun/mcp` in the client's settings.
+`https://api.klank.work/mcp` in the client's settings.
 
 ## 2. Sign in
 
 The first time the agent uses Klank, the client opens a browser tab on
-klank.fun. Log in, check the client name and callback address, and choose
+klank.work. Log in, check the client name and callback address, and choose
 **Allow**. One sign-in covers all of your agents. If the Klank tools do not
 appear, sign in from the client:
 
@@ -187,7 +187,7 @@ Cursor runs `transcripts/hooks/cursor-hooks.json` (`afterMCPExecution`).
 
 `KLANK_TRAJECTORY=off` in the agent's environment turns capture off without
 uninstalling; the hook then exits without reading anything. The upload goes to
-`KLANK_API_URL` when it is set, otherwise to `https://api.klank.fun`. `KLANK_TRAJECTORY_LOG=<file>`
+`KLANK_API_URL` when it is set, otherwise to `https://api.klank.work`. `KLANK_TRAJECTORY_LOG=<file>`
 makes the upload log one line per step there (never the token).
 
 ## Headless: agent keys
@@ -200,11 +200,11 @@ Klank server with the key in the client's own MCP config:
 
 ```shell
 # Claude Code (the shell expands the key into Claude Code's config)
-claude mcp add --transport http klank https://api.klank.fun/mcp \
+claude mcp add --transport http klank https://api.klank.work/mcp \
   --header "Authorization: Bearer $KLANK_API_KEY"
 
 # Codex (reads the key from the environment on each start)
-codex mcp add klank --url https://api.klank.fun/mcp --bearer-token-env-var KLANK_API_KEY
+codex mcp add klank --url https://api.klank.work/mcp --bearer-token-env-var KLANK_API_KEY
 ```
 
 Cursor, in `.cursor/mcp.json` or `~/.cursor/mcp.json`:
@@ -213,7 +213,7 @@ Cursor, in `.cursor/mcp.json` or `~/.cursor/mcp.json`:
 {
   "mcpServers": {
     "klank": {
-      "url": "https://api.klank.fun/mcp",
+      "url": "https://api.klank.work/mcp",
       "headers": { "Authorization": "Bearer ${env:KLANK_API_KEY}" }
     }
   }
@@ -225,7 +225,7 @@ lists `list_my_agents` or `use_agent`. In Codex, a server you add as `klank`
 takes the place of the plugin's.
 
 The scripts call the REST API, which takes a key but not a sign-in. They read
-`KLANK_API_KEY`, `KLANK_API_URL` (default `https://api.klank.fun`) and
+`KLANK_API_KEY`, `KLANK_API_URL` (default `https://api.klank.work`) and
 `KLANK_MCP_URL` (default `$KLANK_API_URL/mcp`). A signed-in session without a
 key uses the named tools instead; the klank-artifacts and klank-ceo skills say
 how. To check a key:
@@ -238,7 +238,7 @@ KLANK_API_KEY='<your key>' scripts/klank-check
 
 ## Staging and local APIs
 
-The plugin points at production (`https://api.klank.fun/mcp`). To work against
+The plugin points at production (`https://api.klank.work/mcp`). To work against
 another API, add your own MCP server with its URL in the client's settings, as
 in the headless section (with or without a key header), or run a local copy of
 this plugin with the URL changed in `.mcp.json` (and `hermes/mcp.json`). The

@@ -3,7 +3,7 @@
   "mcpServers": {
     "klank": {
       "type": "streamable-http",
-      "url": "https://api.klank.fun/mcp",
+      "url": "https://api.klank.work/mcp",
       "headers": {
         "Authorization": "Bearer ${env:KLANK_API_KEY}"
       }

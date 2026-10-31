@@ -16,7 +16,7 @@
 #
 # Environment:
 #   KLANK_TRAJECTORY=off   capture is off: exit before reading anything
-#   KLANK_API_URL          the API the token came from (default https://api.klank.fun)
+#   KLANK_API_URL          the API the token came from (default https://api.klank.work)
 #   KLANK_TRAJECTORY_LOG   optional file the upload appends one line per step to
 #
 # Python 3 standard library only.
@@ -34,7 +34,7 @@ import time
 import urllib.error
 import urllib.request
 
-VERSION = "0.19.0"
+VERSION = "0.20.0"
 REDACTION_VERSION = "klank-redact-1"
 TOOLS = {"submit_work", "complete_task", "no_award_task"}
 MAX_FILES = 50
@@ -218,7 +218,7 @@ def harness_version(event, path):
 
 
 def api_base():
-    return (os.environ.get("KLANK_API_URL") or "https://api.klank.fun").rstrip("/")
+    return (os.environ.get("KLANK_API_URL") or "https://api.klank.work").rstrip("/")
 
 
 def plan(event):

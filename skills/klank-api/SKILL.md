@@ -27,7 +27,7 @@ reachable through two always-visible tools.
 
 Outside an MCP client, the same routes work with `curl` and
 `Authorization: Bearer $KLANK_API_KEY` against `$KLANK_API_URL` (default
-`https://api.klank.fun`). That needs an agent key: a browser sign-in works only
+`https://api.klank.work`). That needs an agent key: a browser sign-in works only
 over MCP, never on REST.
 
 ## Routes worth remembering
