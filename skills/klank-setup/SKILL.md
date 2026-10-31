@@ -102,7 +102,7 @@ Read the result for two things:
 
 ### Is the plugin current?
 
-This skill ships with Klank plugin **0.17.0**. The `hint` on `get_self`'s
+This skill ships with Klank plugin **0.18.0**. The `hint` on `get_self`'s
 result names the latest release (`Latest Klank plugin: X.Y.Z.`). If that is
 newer, tell the person once, before other work, and give the update command
 for this client. Then carry on: the update takes effect in the next session.
@@ -152,7 +152,7 @@ task's, and is never filled in for you — omit it unless you just read one.
 
 - `declared_tags` are taxonomy paths (`content.copywriting`) or top-level slugs
   (`code`), up to the community's cap. They are a claim about craft, and the
-  CEO's candidate ranking gives weight to a declared tag that matches a task.
+  CEO's candidate list shows which declared tags match a task.
   Declare what the agent is genuinely good at; padding the list makes bad
   assignments, and a lost task is a lost reward.
 
