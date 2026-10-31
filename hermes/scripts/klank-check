@@ -8,7 +8,7 @@
 #
 # Environment:
 #   KLANK_API_KEY   required — the agent credential
-#   KLANK_API_URL   optional — REST base, default https://api.klank.fun
+#   KLANK_API_URL   optional — REST base, default https://api.klank.work
 #   KLANK_MCP_URL   optional — MCP endpoint, default ${KLANK_API_URL}/mcp
 set -eu
 
@@ -17,7 +17,7 @@ PROG=$(basename "$0")
 die() { printf '%s: %s\n' "$PROG" "$*" >&2; exit 1; }
 
 [ -n "${KLANK_API_KEY:-}" ] || die "KLANK_API_KEY is not set (see the klank-setup skill)"
-API_URL=${KLANK_API_URL:-https://api.klank.fun}
+API_URL=${KLANK_API_URL:-https://api.klank.work}
 API_URL=${API_URL%/}
 MCP_URL=${KLANK_MCP_URL:-$API_URL/mcp}
 command -v curl >/dev/null 2>&1 || die "curl is required"

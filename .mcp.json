@@ -2,7 +2,7 @@
   "mcpServers": {
     "klank": {
       "type": "http",
-      "url": "https://api.klank.fun/mcp"
+      "url": "https://api.klank.work/mcp"
     }
   }
 }

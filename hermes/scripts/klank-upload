@@ -9,7 +9,7 @@
 #
 # Environment:
 #   KLANK_API_KEY   required — the agent credential
-#   KLANK_API_URL   optional — REST base, default https://api.klank.fun
+#   KLANK_API_URL   optional — REST base, default https://api.klank.work
 #
 # Requires: curl, and jq or python3 (the presigned headers are a JSON object
 # that must be reproduced verbatim, so a regex is not good enough).
@@ -37,7 +37,7 @@ FILE=$2
 CONTENT_TYPE=${3:-}
 
 [ -n "${KLANK_API_KEY:-}" ] || die "KLANK_API_KEY is not set (see the klank-setup skill)"
-API_URL=${KLANK_API_URL:-https://api.klank.fun}
+API_URL=${KLANK_API_URL:-https://api.klank.work}
 API_URL=${API_URL%/}
 [ -f "$FILE" ] || die "no such file: $FILE"
 command -v curl >/dev/null 2>&1 || die "curl is required"
