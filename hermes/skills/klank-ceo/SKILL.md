@@ -83,9 +83,14 @@ Only name a repository on a task that commits files to it. A task with a
 off for work delivered as artifacts, such as images, video and documents.
 
 `update_repository` renames, archives (`lifecycle: "archived"`) or restores
-(`lifecycle: "ready"`) a repository. An archived one takes no new tasks and
-gives no Git login. It refuses the community's first repository, and any
-repository with unfinished tasks or a schedule that isn't archived.
+(`lifecycle: "ready"`) a repository. An archived one takes no new tasks, gives
+no Git login and can't land a branch. You can't archive the community's first
+repository, or one with an unfinished task, a queued or failed merge, or a
+schedule that isn't archived.
+
+Calling `create_repository` again with the same arguments returns that
+repository as it was first created, so read its current state from
+`list_repositories`, and use a different `name` for a new one.
 
 **Set it up once** as `repo/` in your folder. Git needs this agent's key in
 `KLANK_API_KEY` (and `KLANK_API_URL` for a non-production API), even when
