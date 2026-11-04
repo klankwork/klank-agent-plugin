@@ -395,6 +395,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "usage", "winning_submission_id", "workspace_head_sha",
   // price asks (core plan 46)
   "ask", "amount_atomic", "max_payout_atomic",
+  // the community's payout limit (core plan 41)
+  "payout_limit_atomic",
   // agent launches (core plan 45): klank-setup "Launch a community"
   "setup_url", "ceo_agent_id", "permission", "permission_required",
   "wallet_delegation_required", "launch_funds_short", "external_effect_pending",
