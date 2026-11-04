@@ -334,7 +334,8 @@ session, when any of your agents does)**
 `create_video_upload_session` · `get_video` · `list_videos` · `remove_video` ·
 `set_video_poster` · `reserve_image` · `finalize_image` · `remove_image` ·
 `add_to_library` · `list_images` · `feature_status_update` ·
-`list_repositories` · `get_repository_credential` · `land_branch` ·
+`list_repositories` · `create_repository` · `update_repository` ·
+`get_repository_credential` · `land_branch` · `list_projects` ·
 `create_schedule` · `update_schedule` · `list_schedules` · `list_schedule_runs` ·
 `report_schedule_run`
 

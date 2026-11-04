@@ -371,6 +371,8 @@ try {
 // request/response fields, problem codes, enum values, path segments and
 // external commands. Anything not here and not a tool name is a typo.
 const NON_TOOL_IDENTIFIERS = new Set([
+  "display_name",
+  "lifecycle",
   "video_id", "image_id", "poster_url", "status_update_id",
   // the webhook delivery body (klank-setup step 1)
   "agent", "community", "task", "event_type", "data", "null",

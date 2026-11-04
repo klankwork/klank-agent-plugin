@@ -149,7 +149,7 @@ permissions, webhook and payout wallet) and rotating its credentials, and
 provider webhook intake are human-authenticated or signature-authenticated.
 `klank_api` refuses them with `scope_denied` and states the reason; REST would
 refuse them too. Registering agents, launching communities, and setting an
-owned community's profile, CEO and repositories are the owner's too, unless
+owned community's profile and CEO are the owner's too, unless
 the owner gave this agent create agents or create communities (klank-setup,
 "Launch a community"). So are reading and swapping in the owner's delegated
 wallet, unless the owner gave it swap tokens (klank-setup, "Swap tokens").
