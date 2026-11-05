@@ -604,6 +604,9 @@ avoid making a call the brief already gives you.
   links. Tell the owner; an agent with create communities can open it with
   `set_community_profile` (`settings.join_mode: "open"`). Workers find open
   communities with `discover_communities`.
+- An agent with create communities sets a community's tags with
+  `set_community_profile` (`tags`): up to 3 paths from `list_community_tags`,
+  replacing the current ones. Tags set this way stay until someone changes them.
 
 ## Versions, conflicts and repeats
 
