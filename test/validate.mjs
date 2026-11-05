@@ -13,9 +13,7 @@
 //   5. no credential material is checked in
 //   6. every tool name a skill mentions is a real, frozen Klank tool
 //   7. every script parses and is executable
-//   8. the transcript hooks live only in the opt-in transcripts/ plugin, fit
-//      each harness's documented hook schema and fire on exactly the Klank
-//      decision tools
+//   8. the plugin registers no hook
 //   9. hermes/ is a portable Agent Plugins package whose skills and scripts are
 //      exact copies of the root ones
 //
@@ -138,11 +136,8 @@ for (const where of [".codex-plugin/plugin.json", ".plugin/plugin.json"]) {
   if (parsed.get(where) && parsed.get(where).mcpServers !== "./.mcp.json") fail(where, 'mcpServers must be "./.mcp.json"');
 }
 
-// Both catalogs list the plugin and, beside it, the opt-in transcripts plugin.
-const CATALOG = [
-  ["klank", "./"],
-  ["klank-transcripts", "./transcripts"],
-];
+// Both catalogs list the plugin and nothing else.
+const CATALOG = [["klank", "./"]];
 const marketplace = requireFile(".claude-plugin/marketplace.json");
 if (marketplace) {
   const where = ".claude-plugin/marketplace.json";
@@ -183,12 +178,7 @@ if (copilot) {
 }
 
 // Every path a manifest points at must exist, relative to its plugin's root.
-const TRANSCRIPT_MANIFESTS = [
-  "transcripts/.claude-plugin/plugin.json",
-  "transcripts/.codex-plugin/plugin.json",
-  "transcripts/.cursor-plugin/plugin.json",
-];
-for (const manifest of [...VENDOR_MANIFESTS, ...TRANSCRIPT_MANIFESTS]) {
+for (const manifest of VENDOR_MANIFESTS) {
   const pluginRoot = join(ROOT, dirname(dirname(manifest)));
   for (const key of ["skills", "commands", "mcpServers", "hooks"]) {
     const target = parsed.get(manifest)?.[key];
@@ -209,16 +199,8 @@ if (codexMarketplace) {
   }
 }
 
-for (const where of TRANSCRIPT_MANIFESTS) {
-  const manifest = requireFile(where);
-  if (manifest && manifest.name !== "klank-transcripts") fail(where, '"name" must be "klank-transcripts"');
-  for (const key of ["skills", "commands", "mcpServers", "userConfig", "variables"]) {
-    if (manifest?.[key] !== undefined) fail(where, `"${key}" must not exist: this plugin only adds the hook`);
-  }
-}
-
 const versions = new Map(
-  [...VENDOR_MANIFESTS, ...TRANSCRIPT_MANIFESTS, "hermes/plugin.json", "package.json"].map((name) => [
+  [...VENDOR_MANIFESTS, "hermes/plugin.json", "package.json"].map((name) => [
     name,
     parsed.get(name)?.version,
   ]),
@@ -470,10 +452,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   // graded reviews, lineage and criteria (klank-ceo)
   "reviews", "overall", "score", "notes", "tests", "criterion_key", "weight_bps",
   "relations", "fixes", "extends",
-  // the trajectory upload calls (klank-api)
-  "trajectory_upload", "max_bytes", "bytes", "uploads", "headers", "skipped", "too_large",
   // the media library and reference media (klank-ceo, klank-worker)
-  "library_candidates", "reference_media", "image", "video", "source", "created_at",
+  "library_candidates", "reference_media", "image", "video", "source", "created_at", "skipped",
   "posted", "width", "height", "playback_path", "duration_seconds",
   // client-prefixed tool names (klank-setup)
   "mcp__plugin_klank_klank__get_self", "mcp__klank__get_self", "klank",
@@ -526,7 +506,7 @@ function distance(a, b) {
 // ---------------------------------------------------------------------------
 // 7. scripts
 // ---------------------------------------------------------------------------
-const SCRIPTS = ["scripts/klank-upload", "scripts/klank-check", "scripts/klank-image-upload", "scripts/klank-video-upload", "scripts/klank-git-credential", "transcripts/scripts/klank-trajectory"];
+const SCRIPTS = ["scripts/klank-upload", "scripts/klank-check", "scripts/klank-image-upload", "scripts/klank-video-upload", "scripts/klank-git-credential"];
 for (const script of SCRIPTS) {
   const path = join(ROOT, script);
   try {
@@ -548,101 +528,11 @@ for (const script of SCRIPTS) {
 }
 
 // ---------------------------------------------------------------------------
-// 8. transcript hooks
+// 8. no hooks
 // ---------------------------------------------------------------------------
-// The hooks belong to the opt-in transcripts/ plugin; installing Klank alone
-// must register none. Claude Code and Codex share transcripts/hooks/hooks.json
-// (Claude's schema; Codex reads the same one):
-// https://code.claude.com/docs/en/hooks, https://learn.chatgpt.com/docs/hooks.
-// Cursor reads its own schema from the path its manifest names:
-// https://cursor.com/docs/hooks.
-if (existsSync(join(ROOT, "hooks"))) fail("hooks/", "must not exist: Claude Code would load it with the Klank plugin");
+if (existsSync(join(ROOT, "hooks"))) fail("hooks/", "must not exist: Claude Code would load it with the plugin");
 for (const where of VENDOR_MANIFESTS) {
-  if (parsed.get(where)?.hooks !== undefined) fail(where, '"hooks" must not be set: transcripts are opt-in');
-}
-const CAPTURE_TOOLS = ["submit_work", "complete_task", "no_award_task"];
-const TRAJECTORY_SCRIPT = "/scripts/klank-trajectory";
-for (const tool of CAPTURE_TOOLS) {
-  if (!TOOLS.has(tool)) fail("hooks", `${tool} is not a frozen Klank tool`);
-}
-const otherTools = [...TOOLS].filter((t) => !CAPTURE_TOOLS.includes(t));
-
-// The hook must fire for exactly the capture tools, under every name the
-// harness gives them, and for nothing else.
-function checkMatcher(where, matcher, names) {
-  let re;
-  try {
-    re = new RegExp(matcher);
-  } catch (error) {
-    fail(where, `matcher is not a valid regular expression — ${error.message}`);
-    return;
-  }
-  for (const name of names(CAPTURE_TOOLS)) if (!re.test(name)) fail(where, `matcher misses ${name}`);
-  for (const name of names(otherTools)) if (re.test(name)) fail(where, `matcher also fires on ${name}`);
-}
-
-function checkKeys(where, object, allowed) {
-  for (const key of Object.keys(object ?? {})) {
-    if (!allowed.includes(key)) fail(where, `unknown key "${key}"`);
-  }
-}
-
-const sharedHooks = requireFile("transcripts/hooks/hooks.json");
-if (sharedHooks) {
-  const where = "transcripts/hooks/hooks.json";
-  checkKeys(where, sharedHooks, ["description", "hooks"]);
-  checkKeys(where, sharedHooks.hooks, ["PostToolUse"]);
-  const groups = sharedHooks.hooks?.PostToolUse;
-  if (!Array.isArray(groups) || groups.length !== 1) fail(where, "needs exactly one PostToolUse matcher group");
-  for (const group of groups ?? []) {
-    checkKeys(where, group, ["matcher", "hooks"]);
-    // Claude Code prefixes a plugin's MCP tools with plugin_<plugin>_<server>;
-    // Codex and a key connection added as "klank" use the bare server name.
-    checkMatcher(where, group.matcher, (tools) =>
-      tools.flatMap((t) => [`mcp__plugin_klank_klank__${t}`, `mcp__klank__${t}`]),
-    );
-    for (const hook of group.hooks ?? []) {
-      checkKeys(where, hook, ["type", "command", "timeout"]);
-      if (hook.type !== "command") fail(where, 'hook type must be "command"');
-      if (hook.command !== `"\${CLAUDE_PLUGIN_ROOT}${TRAJECTORY_SCRIPT}"`) {
-        fail(where, `command must run "\${CLAUDE_PLUGIN_ROOT}${TRAJECTORY_SCRIPT}", quoted`);
-      }
-      if (!Number.isInteger(hook.timeout) || hook.timeout <= 0) fail(where, "timeout must be a positive integer (seconds)");
-    }
-  }
-}
-
-const cursorHooks = requireFile("transcripts/hooks/cursor-hooks.json");
-if (cursorHooks) {
-  const where = "transcripts/hooks/cursor-hooks.json";
-  checkKeys(where, cursorHooks, ["version", "hooks"]);
-  if (cursorHooks.version !== 1) fail(where, "version must be 1");
-  checkKeys(where, cursorHooks.hooks, ["afterMCPExecution"]);
-  const entries = cursorHooks.hooks?.afterMCPExecution;
-  if (!Array.isArray(entries) || entries.length !== 1) fail(where, "needs exactly one afterMCPExecution entry");
-  for (const entry of entries ?? []) {
-    checkKeys(where, entry, ["command", "matcher", "timeout"]);
-    // Cursor tests an afterMCPExecution matcher against "MCP:<tool_name>".
-    checkMatcher(where, entry.matcher, (tools) => tools.map((t) => `MCP:${t}`));
-    if (entry.command !== `"\${CURSOR_PLUGIN_ROOT}${TRAJECTORY_SCRIPT}"`) {
-      fail(where, `command must run "\${CURSOR_PLUGIN_ROOT}${TRAJECTORY_SCRIPT}", quoted`);
-    }
-    if (!Number.isInteger(entry.timeout) || entry.timeout <= 0) fail(where, "timeout must be a positive integer (seconds)");
-  }
-}
-
-// Claude Code loads hooks/hooks.json by default and a manifest "hooks" in
-// addition to it, so naming it there would register the hook twice. Codex
-// names the shared file; Cursor must name its own, or it would read the
-// Claude-format default.
-if (parsed.get("transcripts/.claude-plugin/plugin.json")?.hooks !== undefined) {
-  fail("transcripts/.claude-plugin/plugin.json", '"hooks" must not be set: Claude Code already loads hooks/hooks.json');
-}
-if (parsed.get("transcripts/.codex-plugin/plugin.json")?.hooks !== "./hooks/hooks.json") {
-  fail("transcripts/.codex-plugin/plugin.json", 'hooks must be "./hooks/hooks.json"');
-}
-if (parsed.get("transcripts/.cursor-plugin/plugin.json")?.hooks !== "./hooks/cursor-hooks.json") {
-  fail("transcripts/.cursor-plugin/plugin.json", 'hooks must be "./hooks/cursor-hooks.json"');
+  if (parsed.get(where)?.hooks !== undefined) fail(where, '"hooks" must not be set');
 }
 
 // ---------------------------------------------------------------------------
