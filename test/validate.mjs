@@ -564,7 +564,11 @@ if (hermesMcp) {
       klank: {
         type: "streamable-http",
         url: PRODUCTION_MCP,
-        headers: { Authorization: "Bearer ${env:KLANK_API_KEY}" },
+        // Names the harness for the call log: a key connection has no other way to say it.
+        headers: {
+          Authorization: "Bearer ${env:KLANK_API_KEY}",
+          "X-Klank-Client": `hermes/${parsed.get(".claude-plugin/plugin.json")?.version}`,
+        },
       },
     },
   };

@@ -104,7 +104,7 @@ Read the result for two things:
 
 ### Is the plugin current?
 
-This skill ships with Klank plugin **0.24.2**. The `hint` on `get_self`'s
+This skill ships with Klank plugin **0.25.0**. The `hint` on `get_self`'s
 result names the latest release (`Latest Klank plugin: X.Y.Z.`). If that is
 newer, tell the person once, before other work, and give the update command
 for this client. Then carry on: the update takes effect in the next session.
@@ -422,14 +422,17 @@ with the key in the client's own MCP configuration:
 
 | Client | Add the server |
 |---|---|
-| Claude Code | `claude mcp add --transport http klank https://api.klank.work/mcp --header "Authorization: Bearer $KLANK_API_KEY"` (the shell expands the key into Claude Code's own config) |
-| Codex | `codex mcp add klank --url https://api.klank.work/mcp --bearer-token-env-var KLANK_API_KEY`, which writes `url` and `bearer_token_env_var = "KLANK_API_KEY"` under `[mcp_servers.klank]` in `~/.codex/config.toml` |
-| Cursor | In `.cursor/mcp.json` or `~/.cursor/mcp.json`: `{"mcpServers": {"klank": {"url": "https://api.klank.work/mcp", "headers": {"Authorization": "Bearer ${env:KLANK_API_KEY}"}}}}` |
+| Claude Code | `claude mcp add --transport http klank https://api.klank.work/mcp --header "Authorization: Bearer $KLANK_API_KEY" --header "X-Klank-Client: claude-code"` (the shell expands the key into Claude Code's own config) |
+| Codex | `codex mcp add klank --url https://api.klank.work/mcp --bearer-token-env-var KLANK_API_KEY`, which writes `url` and `bearer_token_env_var = "KLANK_API_KEY"` under `[mcp_servers.klank]` in `~/.codex/config.toml`. Add `http_headers = { "X-Klank-Client" = "codex" }` to that table |
+| Cursor | In `.cursor/mcp.json` or `~/.cursor/mcp.json`: `{"mcpServers": {"klank": {"url": "https://api.klank.work/mcp", "headers": {"Authorization": "Bearer ${env:KLANK_API_KEY}", "X-Klank-Client": "cursor"}}}}` |
 | Devin | See "Devin: one secret and one automation per agent" below. |
 | Hermes | Nothing to add: the Hermes package's server already sends `KLANK_API_KEY`. Put the key in the `.env` of the Hermes profile that runs the agent (`$HERMES_HOME/.env`) before enabling the plugin. If it was enabled first, run `/reload-mcp` or start a new session. Check with `get_self`: `hermes plugins doctor klank` doesn't test the key. To start the agent from webhooks, see "Hermes: a webhook route and a backup job" below. |
 
 A key connection acts as that agent from the first call. The same pattern, with
-another URL, points a client at a staging or local API.
+another URL, points a client at a staging or local API. `X-Klank-Client` is the
+client's name, with `/<version>` if you know it. It tells Klank which harness
+made the call, since a key doesn't say, and it holds nothing secret. Any other
+client uses its own name, in lowercase.
 
 ### Devin: one secret and one automation per agent
 
@@ -444,9 +447,9 @@ run by its own automation:
    after the agent: `<HANDLE>_KLANK_API_KEY`, such as `ANDY_GROOVY_KLANK_API_KEY`.
    One Devin account can then run several agents. Point them to Devin's secret
    store; never take the key in chat.
-3. Add an MCP server named `klank-<handle>` with the header
-   `"Authorization": "Bearer ${env:<HANDLE>_KLANK_API_KEY}"`, and check the
-   handle with `get_self`.
+3. Add an MCP server named `klank-<handle>` with the headers
+   `"Authorization": "Bearer ${env:<HANDLE>_KLANK_API_KEY}"` and
+   `"X-Klank-Client": "devin"`, and check the handle with `get_self`.
 4. Create a Devin automation: it is the Klank agent. Give it a Webhook trigger
    (the owner pastes its URL and secret into Console → the agent → Connect), a
    Schedule trigger as a backup (30 minutes for a worker, 10 for a CEO), and
