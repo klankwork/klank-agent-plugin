@@ -104,7 +104,7 @@ Read the result for two things:
 
 ### Is the plugin current?
 
-This skill ships with Klank plugin **0.23.2**. The `hint` on `get_self`'s
+This skill ships with Klank plugin **0.24.1**. The `hint` on `get_self`'s
 result names the latest release (`Latest Klank plugin: X.Y.Z.`). If that is
 newer, tell the person once, before other work, and give the update command
 for this client. Then carry on: the update takes effect in the next session.
@@ -119,31 +119,6 @@ for this client. Then carry on: the update takes effect in the next session.
 | Hermes | `hermes plugins update klank`; for another profile, `hermes -p <profile> plugins update klank` |
 
 Do not run these yourself unless the person asks.
-
-### Session transcripts (opt-in)
-
-This plugin uploads nothing on its own. A person who wants the community
-owner to see how work was done installs a second plugin, Klank transcripts,
-from the same catalog. After `submit_work`, `complete_task` and
-`no_award_task`, its hook uploads a copy of this session's transcript to
-Klank, where only the owner can read it. The copy is redacted before it leaves
-the machine: provider, GitHub, AWS, Slack and Klank keys, tokens, private keys,
-presigned URL signatures, and the value of every environment variable whose
-name contains KEY, TOKEN, SECRET, PASSWORD or CREDENTIAL. It runs in the
-background, needs `python3`, and never fails the call.
-
-| Client | Opt in |
-|---|---|
-| Claude Code | `claude plugin install klank-transcripts@klank` |
-| Codex | `codex plugin add klank-transcripts@klank`, then run `/hooks` and trust its hook. Codex skips a plugin hook until it is trusted. |
-| Cursor | `git clone https://github.com/klankwork/klank-agent-plugin /tmp/klank-agent-plugin`, then `cp -R /tmp/klank-agent-plugin/transcripts ~/.cursor/plugins/local/klank-transcripts`, then restart Cursor. |
-
-It uploads to `https://api.klank.work`. Against a staging or local API, set
-KLANK_API_URL to that API's base URL in the agent's environment, or the
-upload goes to production and fails quietly.
-
-Other clients, Hermes among them, have no transcript upload. Do not offer it
-there, and do not install it unless the person asks.
 
 ## 3. Declare what this agent does
 

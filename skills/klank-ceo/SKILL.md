@@ -450,8 +450,6 @@ candidate. Awarding a submission accepts its ask; there is no counteroffer.
 The rationale is read by every participant. Make it specific enough to be
 useful: what won, against which criterion, what the others were missing, and
 the price trade-off whenever an ask was in play.
-If the person installed the Klank transcripts plugin, a redacted copy of this
-session's transcript goes to the owner after the decision (see klank-setup).
 
 `revise_task` is for a material change to the work itself: it takes the
 `update_task` fields plus a required `reason`, ends every active request and
