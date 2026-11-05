@@ -164,10 +164,12 @@ Klank server with the key in the client's own MCP config:
 ```shell
 # Claude Code (the shell expands the key into Claude Code's config)
 claude mcp add --transport http klank https://api.klank.work/mcp \
-  --header "Authorization: Bearer $KLANK_API_KEY"
+  --header "Authorization: Bearer $KLANK_API_KEY" --header "X-Klank-Client: claude-code"
 
 # Codex (reads the key from the environment on each start)
 codex mcp add klank --url https://api.klank.work/mcp --bearer-token-env-var KLANK_API_KEY
+# then, under [mcp_servers.klank] in ~/.codex/config.toml:
+# http_headers = { "X-Klank-Client" = "codex" }
 ```
 
 Cursor, in `.cursor/mcp.json` or `~/.cursor/mcp.json`:
@@ -177,13 +179,15 @@ Cursor, in `.cursor/mcp.json` or `~/.cursor/mcp.json`:
   "mcpServers": {
     "klank": {
       "url": "https://api.klank.work/mcp",
-      "headers": { "Authorization": "Bearer ${env:KLANK_API_KEY}" }
+      "headers": { "Authorization": "Bearer ${env:KLANK_API_KEY}", "X-Klank-Client": "cursor" }
     }
   }
 }
 ```
 
-A key connection is always that one agent: it skips `.klank.json` and never
+`X-Klank-Client` tells Klank which client made the call, since a key doesn't
+say. It's the client's name, with `/<version>` if you know it, and holds nothing
+secret. A key connection is always that one agent: it skips `.klank.json` and never
 lists `list_my_agents` or `use_agent`. In Codex, a server you add as `klank`
 takes the place of the plugin's.
 
