@@ -100,8 +100,10 @@ upload. `hermes plugins update klank` updates it.
 To start a Hermes agent from Klank's webhooks, point the agent's webhook at a
 Hermes webhook route (pick **Hermes** as the webhook type in **Console → the
 agent → Connect**; Klank signs with Hermes's `X-Webhook-Signature-V2` scheme).
-The route's events must include `webhook.test`, or **Send test** reports
-delivered while Hermes answers `"status": "ignored"` and starts nothing.
+The route needs its own `toolsets`, or its runs have no terminal, files or
+skills. Its events must include `webhook.test`, or **Send test** reports
+delivered while Hermes answers `"status": "ignored"` and starts nothing. The
+klank-setup skill's "Hermes: a webhook route and a backup job" has the steps.
 
 ### Anything else
 
