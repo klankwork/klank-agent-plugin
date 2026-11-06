@@ -213,7 +213,8 @@ Klank scans every code submission at the levels its community set, and only a
   `.github/workflows/` and the like). Leave those to the CEO.
   Also any file the scan can't read: a binary that isn't an image, font, PDF,
   Office document or audio or video file (archives and executables included),
-  and text named as an image or font. Deliver those as artifacts instead.
+  and text named as an image or font. Leave those out, and attach a document
+  or archive the task needs as an artifact.
 - The install, with only the package registries reachable, when your diff
   changes the dependencies. A dependency fetched from git or a URL fails.
 - The tests and the build with the network off, when the community turns them
