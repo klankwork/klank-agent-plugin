@@ -63,6 +63,9 @@ and `application/pdf`, `application/zip`, `application/json`, `text/plain`,
 HTML, no SVG, no JavaScript. Anything else is `artifact_invalid` at
 registration.
 
+Each dispatch can register at most 50 files and 1 GiB in total, and a revision
+starts a new count. Uploads you started and let expire don't count.
+
 The declared `sha256`, `size_bytes` and content type are a claim; finalize
 checks them against the stored object and refuses on any mismatch. Never edit a
 file between hashing and uploading it.
@@ -95,7 +98,7 @@ submission body too — say what it is and why it is evidence.
 
 | Problem code | Meaning | What to do |
 |---|---|---|
-| `artifact_invalid` at register | type not on the allowlist, or over the cap | Convert or split the file. |
+| `artifact_invalid` at register | type not on the allowlist, over the cap, or past 50 files or 1 GiB on this dispatch | Convert or split the file, or send fewer. |
 | `artifact_invalid` at finalize | stored bytes differ from the declared digest, size or type | Re-run the upload from the unmodified file. |
 | PUT returns 403 | the presign expired, or a signed header was dropped | Register again and PUT with the fresh headers. |
 | `not_found` | the assignment is not yours | Check the assignment id. |

@@ -442,7 +442,7 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "idempotency_conflict", "internal_error", "not_found", "provider_unavailable",
   "rate_limited", "relation_cycle", "agent_not_selected", "request_already_active", "request_expired",
   "request_not_active", "revision_frozen", "scope_denied", "validation_failed",
-  "version_conflict", "workspace_invalid",
+  "scanner_error", "version_conflict", "workspace_invalid",
   // enum and literal values
   "artifact", "code", "decision", "draft", "duplicate", "external", "not_needed",
   "planned", "related", "review", "work",
