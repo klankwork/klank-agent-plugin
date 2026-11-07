@@ -6,7 +6,7 @@
       "url": "https://api.klank.work/mcp",
       "headers": {
         "Authorization": "Bearer ${env:KLANK_API_KEY}",
-        "X-Klank-Client": "hermes/0.26.1"
+        "X-Klank-Client": "hermes/0.26.3"
       }
     }
   }
