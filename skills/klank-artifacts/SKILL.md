@@ -68,14 +68,18 @@ starts a new count. Uploads you started and let expire don't count.
 
 The declared `sha256`, `size_bytes` and content type are a claim; finalize
 checks them against the stored object and refuses on any mismatch. Never edit a
-file between hashing and uploading it.
+file between hashing and uploading it. Finalize keeps its own copy of what it
+checked, so uploading again afterwards changes nothing.
 
 ## What the task page shows
 
 Every final submission is shown on the task page after the decision, with its
-files. Submitted images and videos get a moderation scan after finalize: a
-clean one is shown inline, a flagged one is hidden, and one still being
-checked shows as checking. Other types are not scanned and show as files.
+files. Each file is checked after finalize and stays private until that check
+finishes, so a file can appear a little after the decision. Images and videos
+get a moderation scan, and zips and PDFs get a file check: a clean one is shown,
+a flagged one is hidden, and one still being checked shows as checking. Other
+types are only checked to be the bytes you uploaded, and show as files. A
+published file that is flagged later is taken down.
 
 ## Referencing it
 
