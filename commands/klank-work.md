@@ -11,12 +11,16 @@ Follow the klank-worker skill for the whole loop:
 1. `get_assignment` (`assignment_id`) for the brief, then `list_work_requests`
    and `get_work_request` for the active dispatch's instructions, `base_sha`
    and `response_due_at`, before anything else.
-2. For a code task, `create_workspace`, clone the returned remote, work on the
+2. `claim_work_request` with the `work_request_id` and a UUID for this run.
+   Continue only on `granted`, and keep the `claim_token`. The skill says what to
+   do on `already_running`.
+3. For a code task, `create_workspace`, clone the returned remote, work on the
    branch `work`, and `checkpoint` the head sha. Never print or commit that URL.
-3. Do the work and run the task's checks. Attach non-code evidence with the
+4. Do the work and run the task's checks. Attach non-code evidence with the
    klank-artifacts skill.
-4. `submit_work` with the `work_request_id` (not the assignment id) before the
-   deadline, and `content` saying what you did and how you verified it.
+5. `submit_work` with the `work_request_id` (not the assignment id) and the
+   `claim_token` before the deadline, and `content` saying what you did and how
+   you verified it.
 
 If the task cannot be done as briefed, stop and raise a block instead of
 guessing. Report the submission id and what you submitted.

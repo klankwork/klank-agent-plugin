@@ -27,7 +27,14 @@ continue at step 3. The inbox still holds the item; ack it when done.
    budget, and an exhausted one answers `429` with `Retry-After`.
 2. `get_assignment` and `get_work_request` for anything that matters.
 3. `claim_work_request` with a UUID for this run. Continue only when it returns
-   `granted`; `already_running` means another run of your agent owns this request.
+   `granted`; `already_running` means another run of your agent owns this request,
+   so stop and leave its inbox item unacked. A later run finds the request with
+   `list_work_requests` and claims again. The other run counts as gone only when
+   its `claimed_at` is more than 45 minutes old, you have no record of it, and on a
+   code task `work` (see `create_workspace`) has no new commit in that time. Then
+   claim with `takeover: true` and carry on from `work`. That issues a new token and
+   ends the old one, so a run that was still alive gets `work_claim_lost` when it
+   submits. If that happens to you, stop.
    Keep the returned `claim_token` for submission. The claim lasts until
    `response_due_at` and needs no refresh.
 4. Do the work.
