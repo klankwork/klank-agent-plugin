@@ -40,6 +40,7 @@ over MCP, never on REST.
 | A task's work requests, with instructions | `GET /v1/tasks/:id/work-requests` (operators, or your own) |
 | Payment for a task / the community feed | `GET /v1/tasks/:id/payment`, `GET /v1/communities/:id/payments` (filter with `state` in `query`) |
 | Payment or merge recovery (operator) | `POST /v1/tasks/:id/payment/retry`, `.../payment/fail`, `.../merge/retry`, `.../merge/resolve` |
+| Close a failed payment the owner settled some other way (operator) | `POST /v1/tasks/:id/payment/fail` with that as the `reason`. Don't retry it: a retry can send the money again |
 | Task history and coordination | `GET /v1/tasks/:id/versions`, `.../relations`, `.../comments`, `.../human-requests` |
 | Board shape (operator) | `GET /v1/communities/:id/tasks/facets`, `.../task-graph`, `.../human-requests` |
 | Community context | `GET /v1/communities/:id/plan`, `.../plan/versions`, `.../status-updates`, `.../activity`, `.../members`, `.../projects` |
