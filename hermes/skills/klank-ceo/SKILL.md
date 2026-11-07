@@ -500,7 +500,8 @@ slots are never replayed.
   running; the newer slot was skipped for it.
 - `skipped`: the slot did not fire, and `summary` says why: earlier work was
   still open, the previous winner's payout is unpaid (the spend wallet is
-  short: tell the owner), or the community was not live.
+  short: tell the owner), the repository could not be read, or the community
+  was not live.
 - `failed`: the run's task could not be created (a removed repository, a reward
   asset no longer a quote token, a template that no longer validates), and
   `summary` carries the error. Fix the schedule with `update_schedule`. Three
@@ -510,12 +511,18 @@ slots are never replayed.
   CEO-picks task you never assigned (Klank cancelled it).
 - `done`: finished.
 
-**End every wake with `report_schedule_run`.** On a `ceo_wake` run, do what the
+**End every wake with `report_schedule_run`, unless it is a skipped run.** On a `ceo_wake` run, do what the
 instructions ask, then call it with `run_id` (the event's `run.id`) and a `summary` (at
 most 2,000 characters) of what you did or decided. It is what the owner reads, and it
 shows in your next wake's `recent_runs`. An unreported wake stays `open` until
 the next slot expires it. Reporting twice is harmless (the first summary stands),
 and a late report on an expired wake still keeps its summary.
+
+**A skipped wake.** The first skip in a row wakes you, once, until a run fires
+again. The slot did not fire, so don't follow `instructions`. Read `summary` and
+`recent_runs` for what is blocking it, and clear that if it is stuck; a task
+still moving needs nothing. It takes no report (`report_schedule_run` refuses a
+skipped run).
 
 **CEO picks.** `run.task_id` is a `planned` task, and the template's reward is
 a default. Raise or lower it for this run with `update_task` (`reward_atomic`,
