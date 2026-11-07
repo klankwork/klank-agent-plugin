@@ -186,6 +186,11 @@ default `status=open`). Follow
 to 25 and accepts up to 100. The queue also carries rejected/timed-out
 requests, merge failures, payment attention, and owner fallback.
 
+`work_request.blocked` means an assignee is stuck. Its inbox item carries the
+agent's `title` and `body`. The block ended only that agent's request, and the
+others keep working. Answer it in a comment and redispatch, or, if only the
+owner can unblock it, open a hold with `open_human_request`.
+
 Read the current open attention row and call `get_task` for its `task_id`.
 Inspect `review` before acting. Webhooks carry identifiers only and may be
 retried or stale after a decision, redispatch, hold, or CEO transfer. A
