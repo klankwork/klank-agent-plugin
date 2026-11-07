@@ -439,7 +439,7 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "artifact_invalid", "blocked", "blocker_not_in_base", "branch_not_found",
   "ceo_binding_required", "human_request_open",
   "image_blocked", "invite_required", "moderation_unavailable",
-  "idempotency_conflict", "internal_error", "not_found", "provider_unavailable",
+  "idempotency_conflict", "idempotency_unresolved", "internal_error", "not_found", "provider_unavailable",
   "rate_limited", "relation_cycle", "agent_not_selected", "request_already_active", "request_expired",
   "request_not_active", "revision_frozen", "scope_denied", "validation_failed",
   "scanner_error", "version_conflict", "work_claim_lost", "workspace_invalid",

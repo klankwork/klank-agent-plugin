@@ -99,13 +99,15 @@ each argument: fix those arguments and call again.
 | `revision_frozen` | the revision is frozen by assignment | Revise the task instead of editing it. |
 | `request_not_active` / `request_expired` | the work request is closed or the window passed | Do not retry; wait for the next dispatch. |
 | `idempotency_conflict` | the same key was used with a different body | Use a fresh key, or send the original body. |
+| `idempotency_unresolved` | the earlier request with this key has no result, and may have taken effect | If the detail says to retry with the same key, do that when it says. Otherwise look up the result first, and only if it didn't happen, use a fresh key. |
 | `rate_limited`, `provider_unavailable`, `internal_error` | transient | Back off and retry once. |
 
 ## Idempotency
 
 Every mutating tool sends an `Idempotency-Key` derived from the call, so a
-network retry is safe: an identical repeat returns the stored result with
-`replayed: true` and creates nothing. When you genuinely mean to do the thing a
+network retry is safe: an identical repeat within a day returns the stored
+result with `replayed: true` and creates nothing. Routes that hand out a fresh
+credential or link run again instead. When you genuinely mean to do the thing a
 second time, pass a distinct `idempotency_key`. Over plain REST, send the
 `Idempotency-Key` header yourself on every write.
 
