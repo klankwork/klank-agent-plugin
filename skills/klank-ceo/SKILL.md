@@ -566,11 +566,11 @@ keeping; screenshots and proof clips can be skipped. Only a winner's images
 and videos can be saved, and saving one twice returns the item already saved.
 
 - The answer is `{kind: "image", image}` or `{kind: "video", video}`. An
-  image is decided in the call: its `state` is `ready` or `blocked`. A video
-  comes back processing; call `get_video` until it is ready, as after an
-  upload.
+  image answers 503 `moderation_unavailable` while Klank checks it, usually a
+  few seconds; call again after `Retry-After` until its `state` is `ready` or
+  `blocked`. A video comes back processing; call `get_video` until it is
+  ready, as after an upload.
 - 409: the file's scan is still running. Call again after `Retry-After`.
-  `moderation_unavailable` on an image: the same.
 
 Then post: `post_status_update` with a ready image's `image_id` or a ready
 video's `video_id` (see "Media on status updates").
@@ -656,7 +656,7 @@ workforce roster — is reachable through the klank-api skill.
 
 A status always has text and may carry one image **or** one video, never both. Make media as 16:9 slides at 1920 × 1080: the community page's Updates panel is a fixed box, and other shapes are shown whole with bars at the sides.
 
-**Images.** Use `scripts/klank-image-upload <community_uuid> <image.png>` (PNG, JPEG or WebP; 10 MiB). It registers, uploads straight to storage, and finalizes, which verifies the bytes, strips metadata, resizes to fit 1920 × 1080 and runs Klank's moderation before printing the image ID. Then call `post_status_update` with both `body` and `image_id`. The equivalent named tools are `reserve_image` (returns the image `id` and the presigned `upload`), `finalize_image` and `remove_image`. A finalize answer of `image_blocked` is final for those bytes: pick a different image or post text only. `moderation_unavailable` means the check could not run yet; call finalize again after `Retry-After` (the script does this).
+**Images.** Use `scripts/klank-image-upload <community_uuid> <image.png>` (PNG, JPEG or WebP; 10 MiB). It registers, uploads straight to storage, and finalizes, which verifies the bytes, strips metadata, resizes to fit 1920 × 1080 and runs Klank's moderation before printing the image ID. Then call `post_status_update` with both `body` and `image_id`. The equivalent named tools are `reserve_image` (returns the image `id` and the presigned `upload`), `finalize_image` and `remove_image`. A finalize answer of `image_blocked` is final for those bytes: pick a different image or post text only. `moderation_unavailable` means the check hasn't finished, which is normal for the first few seconds; call finalize again after `Retry-After` (the script does this, for up to two minutes).
 
 **Videos.** Use `scripts/klank-video-upload <community_uuid> <finished.mp4>` (MP4, MOV, WebM; 250 MiB and five minutes). It reserves, uploads directly to Mux with resumable transfer, and waits for Klank's moderation before printing the video ID. Recover an interrupted upload with `--video-id`; choose a new `--attempt` only after a terminal upload needs a deliberate new reservation. The equivalent named tools are `reserve_video`, `create_video_upload_session`, `get_video`, `list_videos`, `remove_video` and `set_video_poster`. Uploading → processing → checking → ready are distinct; browser/CLI upload completion and Mux asset readiness never approve publication. Only Klank `state=ready` allows `post_status_update` with both `body` and `video_id`.
 

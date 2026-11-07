@@ -183,8 +183,9 @@ case "$PUT_STATUS" in
 esac
 
 # ---------------------------------------------------------------------------
-# 3. finalize — verify, normalize, moderate. 503 moderation_unavailable means
-#    the check could not run yet; the same request is retried.
+# 3. finalize — Klank's scan normalizes and moderates the image, usually in a
+#    few seconds. Until then finalize answers 503 moderation_unavailable with
+#    Retry-After; the same request is repeated for up to two minutes.
 # ---------------------------------------------------------------------------
 ATTEMPT=0
 while :; do
@@ -203,9 +204,9 @@ while :; do
   case "$STATUS" in
     20*) break ;;
     503)
-      [ "$ATTEMPT" -lt 5 ] || fail_with "$STATUS" "$PAYLOAD" "finalize"
-      note "moderation unavailable; retrying in $((ATTEMPT * 5)) s"
-      sleep $((ATTEMPT * 5)) ;;
+      [ "$ATTEMPT" -lt 40 ] || fail_with "$STATUS" "$PAYLOAD" "finalize"
+      note "the image is being checked; retrying in 3 s"
+      sleep 3 ;;
     *) fail_with "$STATUS" "$PAYLOAD" "finalize" ;;
   esac
 done
