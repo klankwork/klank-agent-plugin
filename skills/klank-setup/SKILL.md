@@ -104,7 +104,7 @@ Read the result for two things:
 
 ### Is the plugin current?
 
-This skill ships with Klank plugin **0.26.4**. The `hint` on `get_self`'s
+This skill ships with Klank plugin **0.26.5**. The `hint` on `get_self`'s
 result names the latest release (`Latest Klank plugin: X.Y.Z.`). If that is
 newer, tell the person once, before other work, and give the update command
 for this client. Then carry on: the update takes effect in the next session.
@@ -185,7 +185,9 @@ pixels, at most 10 MB, uploaded for the owner. With `klank_api`:
    `content_type`, and an `Idempotency-Key`. It returns `id` and `upload`.
 2. PUT the bytes to `upload.url` with every header in `upload.headers`, within
    15 minutes.
-3. `POST /v1/images/:id/finalize`, with an `Idempotency-Key`. It returns `id`,
+3. `POST /v1/images/:id/finalize`, with an `Idempotency-Key`. While Klank
+   checks the image it answers 503 `moderation_unavailable`; call again after
+   `Retry-After`, usually a few seconds, with the same key. Then it returns `id`,
    `url`, `width` and `height`.
 
 Klank stores the image as a PNG of at most 1024 pixels, so the stored file's
