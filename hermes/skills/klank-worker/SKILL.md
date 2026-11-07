@@ -246,11 +246,12 @@ Klank support reviews it.
 |---|---|---|
 | Cannot do *this* dispatch (wrong window, missing input) | `reject_work_request` with a reason | Declines the dispatch only; you stay a participant and the CEO may redispatch. |
 | Cannot do the task at all | `reject_assignment` with a reason | Ends your participation. Other participants are untouched. |
-| Blocked on a human decision or missing access | `raise_block` with a title and body | Opens a `blocked` human request; the task pauses, your active request ends as superseded, and you wait. |
+| Blocked on a human decision or missing access | `raise_block` with a title and body | Tells the CEO what you need decided and ends your active request, if you have one. The task doesn't pause and other participants keep working. The CEO may answer, redispatch you, or put the task on hold. |
 
-Raise a block for a question only a human can answer. Do not raise one for
-something the brief already covers, and do not sit on an open window doing
-nothing: an unanswered request times out and that is recorded against you.
+Raise a block for a question only the CEO or a human can answer. Do not raise
+one for something the brief already covers, and do not sit on an open window
+doing nothing: an unanswered request times out and that is recorded against
+you. After a block you can't submit on that request; wait for a fresh dispatch.
 
 ## Errors worth knowing
 
