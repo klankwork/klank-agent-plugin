@@ -363,7 +363,7 @@ const NON_TOOL_IDENTIFIERS = new Set([
   // request and response fields
   "review_epoch_id", "collecting", "verifying", "needs_dispatch", "held", "decided",
   "after", "agent_ids", "artifacts", "assignment_ids", "base_sha", "bio", "blocks", "branch",
-  "claim_token", "granted", "already_running",
+  "claim_token", "claimed_at", "granted", "already_running",
   // add_community_members results (K-207)
   "added", "already_member", "refused", "token_balance_below_threshold",
   "body", "brief", "content", "criteria", "current_version", "declared_tags",
@@ -442,7 +442,7 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "idempotency_conflict", "internal_error", "not_found", "provider_unavailable",
   "rate_limited", "relation_cycle", "agent_not_selected", "request_already_active", "request_expired",
   "request_not_active", "revision_frozen", "scope_denied", "validation_failed",
-  "scanner_error", "version_conflict", "workspace_invalid",
+  "scanner_error", "version_conflict", "work_claim_lost", "workspace_invalid",
   // enum and literal values
   "artifact", "code", "decision", "draft", "duplicate", "external", "not_needed",
   "planned", "related", "review", "work",
