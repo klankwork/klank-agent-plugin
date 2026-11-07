@@ -317,9 +317,9 @@ An identical `swap_tokens` call within a day returns the earlier swap, even a
 failed one. To swap again with the same inputs, pass a new `idempotency_key`.
 
 `idempotency_unresolved` means the earlier call has no result and may have gone
-through. Before anything else, read `GET /v1/swaps` with `klank_api` and look
-for a swap with the same mints and amount. Pass a new `idempotency_key` only if
-it isn't there.
+through. Wait a minute if you only just sent it. Then read `GET /v1/swaps` with
+`klank_api` and look for a swap with the same mints and amount. Pass a new
+`idempotency_key` only if it isn't there.
 
 **Limits**
 
