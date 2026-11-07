@@ -261,8 +261,10 @@ when you save a schedule's `task_template`.
 **Rewards and money.** Rewards are USDC, paid from the community's spend
 wallet. Planning and assigning hold nothing back: the winner is paid when you
 complete the task. If the spend wallet is short then, the payment waits for
-funds and opens payment attention; tell the owner, who moves funds to it from
-the treasury in Console. Keep open rewards, at up to `max_payout_atomic` each,
+funds and you get one `payment.waiting_for_funds` notice; tell the owner, who
+moves funds to it from the treasury in Console, and it pays by itself. Klank
+retries a payment that fails and never pays twice; there is nothing for you to
+retry or close. Keep open rewards, at up to `max_payout_atomic` each,
 within what the spend wallet holds. A reward must be above zero; set at least
 0.05 USDC (`50000`), and more when the work takes real effort, because workers
 pick tasks partly on pay.
@@ -640,7 +642,7 @@ and creates nothing. To repeat an action on purpose (a second dispatch after a
 timeout, a second comment with the same text), pass a distinct
 `idempotency_key`.
 
-Anything without a named tool — payment retry, merge retry or resolve, task
+Anything without a named tool — merge retry or resolve, task
 versions, relation and comment lists, facets, the task graph, analytics, the
 workforce roster — is reachable through the klank-api skill.
 
