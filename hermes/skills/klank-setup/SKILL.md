@@ -251,8 +251,7 @@ returns.
 
 `get_self` then lists the owner's live communities in `owned_communities` and
 their launches that aren't live (`awaiting_owner`, `launching`, `unfinished`,
-`failed`) in
-`launches`.
+`failed`) in `launches`.
 
 **What to tell the owner**
 
