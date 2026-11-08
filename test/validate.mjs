@@ -386,6 +386,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "owned_communities", "launches", "quote_mint", "opening_buy_atomic", "detail",
   "wallet_address", "quote", "opening_buy_cap_atomic", "launch_fee_lamports",
   "initial_spend_atomic", "scarcity", "invite_only", "token_gated",
+  // owner-approved launches (core plan 65)
+  "awaiting_owner", "approve_url", "owner_vesting",
   // task types (taxonomy kinds and a top-level type): klank-ceo "Task types"
   "craft", "facet", "media",
   // schedules (core plan 44): klank-ceo "Schedules"
