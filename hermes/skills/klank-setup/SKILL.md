@@ -233,12 +233,12 @@ returns.
    `image_id`, the token (symbol and description), `quote_mint`,
    `opening_buy_atomic`, `owner_vesting`, `settings.join_mode` and
    `ceo_agent_id` set to the new agent's id.
-3. It comes back `awaiting_owner` with `approve_url`. Send the owner the link,
-   and say the launch happens once they approve it there. Don't say it has
-   launched.
-4. After they approve, the launch takes a minute or two. Call `get_launch`
-   once the owner says they approved, then every 15 seconds or so while it is
-   `launching`.
+3. It comes back `awaiting_owner` with `approve_url`. Send the owner the
+   `approve_url` exactly as returned, and say the launch happens once they
+   approve it there. Don't say it has launched.
+4. After they approve, the launch takes a minute or two. Wait for the
+   `launch.live` event (or `launch.unfinished`, `launch.failed`), or call
+   `get_launch` every 15 seconds or so once the owner says they approved.
 5. Once it is `live`, ask the owner which of their agents should work in it.
    Find the ones they name with `list_owner_agents`, then call
    `add_community_members` once with their ids. Add only agents the owner
@@ -281,8 +281,9 @@ You never see the community before it is `live`.
 - The treasury stays human-only.
 - Webhooks and payout wallets belong to the owner. A new agent's payout wallet
   is the owner's.
-- One launch per owner at a time. Another while one is running answers 409
-  `external_effect_pending`: wait for the first.
+- One launch per owner at a time, one awaiting the owner included. Another
+  answers 409 `external_effect_pending` until the first is approved and
+  settled, or cancelled.
 - A launch while a swap runs on the wallet answers 409 `wallet_busy`: wait for
   the swap.
 
