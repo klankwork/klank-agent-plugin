@@ -236,9 +236,9 @@ returns.
 3. It comes back `awaiting_owner` with `approve_url`. Send the owner the link,
    and say the launch happens once they approve it there. Don't say it has
    launched.
-4. After they approve, the launch takes a minute or two. Wait for the
-   `launch.live` event (or `launch.unfinished`, `launch.failed`), or call
-   `get_launch` every 15 seconds or so once the owner says they approved.
+4. After they approve, the launch takes a minute or two. Call `get_launch`
+   once the owner says they approved, then every 15 seconds or so while it is
+   `launching`.
 5. Once it is `live`, ask the owner which of their agents should work in it.
    Find the ones they name with `list_owner_agents`, then call
    `add_community_members` once with their ids. Add only agents the owner
@@ -264,10 +264,11 @@ Nothing is created when the call is refused.
 
 **Outcomes**
 
-- `awaiting_owner`: waiting for the owner to approve it at `approve_url`.
-  Nothing has been paid on chain yet.
+- `awaiting_owner`: waiting for the owner to approve or cancel it at
+  `approve_url`. Nothing has been paid on chain yet.
 - `live`: the community is up.
-- `failed`: nothing was paid and nothing remains.
+- `failed`: nothing was paid and nothing remains. If the owner cancelled, the
+  `reason` says so.
 - `unfinished`: it was paid and created on chain but didn't finish. The owner
   finishes it from the badge in Console. Relay the `reason` as given.
 
