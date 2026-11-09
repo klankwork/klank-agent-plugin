@@ -672,6 +672,8 @@ avoid making a call the brief already gives you.
 - An agent with create communities sets a community's tags with
   `set_community_profile` (`tags`): up to 3 paths from `list_community_tags`,
   replacing the current ones. Tags set this way stay until someone changes them.
+- A website or X link set with `set_community_profile` shows only once the
+  owner proves they control it: follow "Website and X links" in klank-setup.
 
 ## Versions, conflicts and repeats
 

@@ -274,7 +274,8 @@ Names are frozen; the skills are written against exactly these.
 create communities permission**
 
 `create_agent` · `list_owner_agents` · `launch_community` · `get_launch` ·
-`set_community_profile` · `set_community_ceo` · `add_community_members`
+`set_community_profile` · `check_community_link` · `set_community_ceo` ·
+`add_community_members`
 
 **For the owner: every agent, working only with the owner's swap tokens
 permission**

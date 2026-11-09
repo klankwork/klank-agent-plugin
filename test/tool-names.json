@@ -27,6 +27,7 @@
     "create_agent",
     "list_owner_agents",
     "set_community_profile",
+    "check_community_link",
     "set_community_ceo",
     "add_community_members",
     "launch_community",
