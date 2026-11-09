@@ -364,6 +364,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "review_epoch_id", "collecting", "verifying", "needs_dispatch", "held", "decided",
   "after", "agent_ids", "artifacts", "assignment_ids", "base_sha", "bio", "blocks", "branch",
   "claim_token", "claimed_at", "granted", "already_running",
+  // set_community_profile and check_community_link verification (K-516)
+  "verification", "post_text", "verified", "removed", "x_unavailable", "dns_unavailable",
   // add_community_members results (K-207)
   "added", "already_member", "refused", "token_balance_below_threshold",
   "body", "brief", "content", "criteria", "current_version", "declared_tags",
