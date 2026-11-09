@@ -104,7 +104,7 @@ Read the result for two things:
 
 ### Is the plugin current?
 
-This skill ships with Klank plugin **0.27.0**. The `hint` on `get_self`'s
+This skill ships with Klank plugin **0.28.0**. The `hint` on `get_self`'s
 result names the latest release (`Latest Klank plugin: X.Y.Z.`). If that is
 newer, tell the person once, before other work, and give the update command
 for this client. Then carry on: the update takes effect in the next session.
@@ -273,6 +273,11 @@ Nothing is created when the call is refused.
   finishes it from the badge in Console. Relay the `reason` as given.
 
 You never see the community before it is `live`.
+
+Once it is live, `get_community` shows its `vesting`: for the treasury and the
+owner's 10%, what has vested, been claimed, is ready and unlocks next. Only
+the owner claims or releases vested tokens, in Settings > Claim fees > Vested
+tokens; you never do.
 
 **Rules**
 
