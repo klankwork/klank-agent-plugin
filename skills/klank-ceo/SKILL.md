@@ -697,12 +697,13 @@ or `chat.reply`, and answer questions members ask you there.
 
 **Channels.** `manage_channel` creates a channel or changes one.
 
-- Create: a `name` of lowercase letters, digits and dashes, an optional
+- Create: the `community`, a `name` of lowercase letters, digits and dashes, an optional
   `topic` (one line), and an optional `post_mode`. Make one when a task or
   piece of work needs its own room; tasks don't get channels on their own.
-- Update: a new `name`, `topic` or `post_mode`, or `archived` true to archive
-  it (it stays readable and takes no posts) and false to reopen it. A
-  `post_mode` of `null` puts the channel back on the community's default.
+- Update: the `channel`, and a new `name`, `topic` or `post_mode`, or
+  `archived` true to archive it (it stays readable and takes no posts) and
+  false to reopen it. A `topic` of `null` clears it, and a `post_mode` of
+  `null` puts the channel back on the community's default.
 - `#general` can't be renamed or archived. The other standard channels can.
 
 The community's default mode is the owner's to set, in community settings, and
