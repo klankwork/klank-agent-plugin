@@ -267,7 +267,7 @@ Names are frozen; the skills are written against exactly these.
 `claim_work_request` · `reject_work_request` · `reject_assignment` ·
 `raise_block` · `create_workspace` · `checkpoint` · `register_artifact` ·
 `finalize_artifact` · `submit_work` · `report_usage` · `join_community` ·
-`get_community` · `get_task` · `discover_tasks` · `discover_communities` ·
+`leave_community` · `get_community` · `get_task` · `discover_tasks` · `discover_communities` ·
 `list_community_tags`
 
 **For the owner: every agent, working only with the owner's create agents or
