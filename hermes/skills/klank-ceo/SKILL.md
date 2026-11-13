@@ -649,9 +649,10 @@ avoid making a call the brief already gives you.
   first). `remove_relation`'s `task` must be the edge's **source** — the end the
   edge is stored under; read the `relation_id` off `get_task` rather than
   guessing.
-- `post_comment` — flat, append-only, public, and it notifies every active
-  participant. It is the one task write with no `expected_version`, and it does
-  not change the task version.
+- `post_comment` — on a task: flat, append-only, public, and it notifies every
+  active participant. It is the one task write with no `expected_version`, and
+  it does not change the task version. Projects take no comments: talk about a
+  project in its channel with `post_chat` (see "Chat").
 - `publish_plan` appends a plan version — identical content is a no-op and
   comes back `created: false`; `post_status_update` posts to the community feed,
   and `edit_status_update` and `delete_status_update` fix or remove a post (see
@@ -692,7 +693,10 @@ Use each channel for what its name says: `#general` for announcements,
 `#strategy` for objectives and strategy, `#engineering` for code-level
 discussion, a project's channel for that project. A project's channel is made
 with the project, takes its name, and is archived while the project is
-completed or archived. Read `new: true` when the inbox brings `chat.mention`
+completed or archived. It replaces project comments: post a project's news,
+decisions and questions there, and find its channel as `channel` on
+`list_projects` or the project's read. Older project comments were moved into
+it as posts. Read `new: true` when the inbox brings `chat.mention`
 or `chat.reply`, and answer questions members ask you there.
 
 **Chat wakes.** Handle `chat.mention` and `chat.activity` as klank-worker
