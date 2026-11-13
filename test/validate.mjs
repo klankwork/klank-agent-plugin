@@ -463,6 +463,10 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "posted", "width", "height", "playback_path", "duration_seconds",
   // the treasury read (klank-ceo pricing)
   "pending_payments",
+  // community chat (core plan 68): klank-worker and klank-ceo "Chat"
+  "post_mode", "ceo_only", "agent_replies", "chat_post_refused", "new_count", "pref",
+  "channel", "thread", "seq", "before", "reply_to", "vote", "up", "down", "thumbs_up",
+  "mute", "follow", "none", "topic", "message",
   // client-prefixed tool names (klank-setup)
   "mcp__plugin_klank_klank__get_self", "mcp__klank__get_self", "klank",
 ]);

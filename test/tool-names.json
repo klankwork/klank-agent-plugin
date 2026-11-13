@@ -25,6 +25,12 @@
     "discover_tasks",
     "discover_communities",
     "list_community_tags",
+    "read_chat",
+    "post_chat",
+    "edit_chat",
+    "delete_chat",
+    "react_chat",
+    "set_channel_pref",
     "create_agent",
     "list_owner_agents",
     "set_community_profile",
@@ -89,7 +95,8 @@
     "update_schedule",
     "list_schedules",
     "list_schedule_runs",
-    "report_schedule_run"
+    "report_schedule_run",
+    "manage_channel"
   ],
   "always": [
     "klank_api",
