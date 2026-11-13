@@ -37,7 +37,7 @@
     "check_community_link",
     "set_community_ceo",
     "add_community_members",
-    "launch_community",
+    "create_community",
     "get_launch",
     "get_wallet",
     "quote_swap",

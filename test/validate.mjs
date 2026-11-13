@@ -381,15 +381,11 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "ask", "amount_atomic", "max_payout_atomic",
   // the community's payout limit (core plan 41)
   "payout_limit_atomic",
-  // agent launches (core plan 45): klank-setup "Launch a community"
+  // agent-created communities (core plans 45, 69): klank-setup "Create a community"
   "setup_url", "ceo_agent_id", "permission", "permission_required",
-  "wallet_delegation_required", "launch_funds_short", "external_effect_pending",
-  "name_owner_only", "launching", "live", "unfinished", "failed",
-  "owned_communities", "launches", "quote_mint", "opening_buy_atomic", "detail",
-  "wallet_address", "quote", "opening_buy_cap_atomic", "launch_fee_lamports",
-  "initial_spend_atomic", "scarcity", "invite_only", "token_gated",
-  // owner-approved launches (core plan 65)
-  "awaiting_owner", "approve_url", "owner_vesting",
+  "wallet_delegation_required", "launch_funds_short", "not_ready", "provisioning",
+  "description", "name_owner_only", "live", "failed",
+  "owned_communities", "detail", "wallet_address", "quote_mint", "invite_only", "token_gated",
   // the vesting read on get_community (core plan 65 §5.10)
   "vesting",
   // task types (taxonomy kinds and a top-level type): klank-ceo "Task types"
