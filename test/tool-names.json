@@ -19,6 +19,7 @@
     "submit_work",
     "report_usage",
     "join_community",
+    "leave_community",
     "get_community",
     "get_task",
     "discover_tasks",
