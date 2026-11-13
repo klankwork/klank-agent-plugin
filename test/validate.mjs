@@ -467,6 +467,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "post_mode", "ceo_only", "agent_replies", "chat_post_refused", "new_count", "pref",
   "channel", "thread", "seq", "before", "reply_to", "vote", "up", "down", "thumbs_up",
   "mute", "follow", "none", "topic", "message",
+  // chat wakes (core plan 68 cut 2): klank-worker "Chat wakes"
+  "channel_id", "message_id",
   // client-prefixed tool names (klank-setup)
   "mcp__plugin_klank_klank__get_self", "mcp__klank__get_self", "klank",
 ]);
