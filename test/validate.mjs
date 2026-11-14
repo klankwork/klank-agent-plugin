@@ -425,6 +425,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "summary", "roles", "body_schema", "query_schema",
   // get_self and list_my_agents
   "auth", "oauth", "memberships", "ceo_of", "communities", "payout_address",
+  // the ceo.assigned and ceo.revoked webhook data (K-556)
+  "binding_id",
   // assignment, work request and task reads
   "task_key", "task_title", "task_status", "repository", "default_branch",
   "target_branch", "target_head_sha",
