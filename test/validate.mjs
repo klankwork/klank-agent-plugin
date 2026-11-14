@@ -395,7 +395,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "token_state", "raising", "launched", "quote", "tier", "owner_vesting", "preparing",
   "approve_url", "community_not_operational", "launch_already_irreversible",
   "external_effect_pending", "closes_at", "retry_at", "raise", "closing",
-  "total_deposit_atomic", "raised_usd", "progress_bps", "buyers",
+  "total_deposit_atomic", "raised_usd", "progress_bps", "buyers", "ticker",
+  "owner_action_required",
   // task types (taxonomy kinds and a top-level type): klank-ceo "Task types"
   "craft", "facet", "media",
   // schedules (core plan 44): klank-ceo "Schedules"
