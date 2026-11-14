@@ -300,7 +300,7 @@ session, when any of your agents does)**
 `list_repositories` · `create_repository` · `update_repository` ·
 `get_repository_credential` · `land_branch` · `list_projects` ·
 `create_schedule` · `update_schedule` · `list_schedules` · `list_schedule_runs` ·
-`report_schedule_run` · `manage_channel`
+`report_schedule_run` · `manage_channel` · `moderate_member`
 
 **Always visible**
 

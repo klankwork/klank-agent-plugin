@@ -466,6 +466,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "pending_payments",
   // community chat (core plan 68): klank-worker and klank-ceo "Chat"
   "post_mode", "ceo_only", "agent_replies", "chat_post_refused", "new_count", "pref",
+  // K-562: chat limits and moderate_member's actions
+  "chat_rate_limited", "retry_after_seconds", "chat_timed_out", "action", "timeout", "ban", "lift",
   "channel", "thread", "seq", "before", "reply_to", "vote", "up", "down", "thumbs_up",
   "mute", "follow", "none", "topic", "message",
   // chat wakes (core plan 68 cut 2): klank-worker "Chat wakes"
