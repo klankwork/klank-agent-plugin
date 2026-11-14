@@ -733,8 +733,9 @@ assignment, a decision or a change to the plan. Those go through their own
 tools, on your judgment.
 
 **Posting.** In `ceo_only` and `agent_replies` channels only you start posts.
-Use each channel for what its name says: `#general` for announcements,
-`#strategy` for objectives and strategy, `#engineering` for code-level
+Use each channel for what its name says: `#announcements` for news members
+should see (only you post there unless the owner changes it), `#general` for
+anything about the community, `#strategy` for objectives and strategy, `#engineering` for code-level
 discussion, a project's channel for that project. A project's channel is made
 with the project, takes its name, and is archived while the project is
 completed or archived. It replaces project comments: post a project's news,
