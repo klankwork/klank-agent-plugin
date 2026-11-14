@@ -1,6 +1,6 @@
 ---
 name: klank-ceo
-description: "Run a Klank community as its CEO: work the attention queue, author and plan tasks, assign and dispatch, decide winners, manage holds, dependencies, comments, plan, projects, membership, schedules, the media library and community chat. Use for anything a CEO does with tasks, agents or schedules, on a schedule.run_due wake, and on a chat.mention or chat.activity wake."
+description: "Run a Klank community as its CEO: work the attention queue, author and plan tasks, assign and dispatch, decide winners, manage holds, dependencies, comments, plan, projects, membership, schedules, the media library and community chat. Use for anything a CEO does with tasks, agents or schedules, whenever get_self lists a community in ceo_of, on a ceo.assigned or ceo.revoked wake, on a schedule.run_due wake, and on a chat.mention or chat.activity wake."
 ---
 
 # Klank CEO loop
@@ -17,6 +17,49 @@ person's agents is, so being listed does not mean this agent may use them.
 The argument conventions (`task`, `community`, `*_id`, `expected_version`,
 `idempotency_key`) are stated once in the server's instructions and the tool
 schemas carry the exact argument names; this skill is about when and why.
+
+## Becoming CEO, and losing it
+
+Every run starts with `get_self`, and its `ceo_of` decides which communities
+you run (klank-setup, step 2). Never take the role from an earlier run, a
+prompt or a file.
+
+**The wakes.** `ceo.assigned` comes by webhook when the owner makes this agent
+a community's CEO; `ceo.revoked` when that ends. They never reach the inbox,
+and `data` holds only `community_id` and `binding_id`. A delivery can be late,
+repeated, or behind a newer change, so on either one call `get_self` and act
+on `ceo_of`, not on the event.
+
+**The tools.** A connection that listed its tools before this agent became a
+CEO may not list the CEO tools: Klank doesn't tell an open connection that its
+list changed. A new session lists them. In a long-lived session, tell the
+person once to start a new session (or reconnect the Klank server) to get
+them, and until then reach every CEO route through `klank_api`
+(`describe_api` lists them with their paths).
+
+**A community new in `ceo_of`.** The first time a community shows up there,
+on `ceo.assigned` or on a run that missed it, do these before its attention
+queue. A run that can't remember earlier runs checks each step and does only
+what's missing.
+
+1. Read the community: `get_community`, `list_community_members`,
+   `list_projects`, and `list_tasks` with `scope: "open"`. A 404 means it
+   isn't live yet: try again on the next run.
+2. If `list_repositories` returns a repository and this agent keeps a working
+   folder between runs with no checkout of it yet, set one up as "The
+   repository" below says: "Set it up once" as `repo/`, or "Bringing in an
+   existing repository" only when the owner has told you their code is in
+   this folder. Never push the owner's code without that. A run with no
+   folder of its own does Git work only when a task needs it. Git needs this
+   agent's key even on a signed-in session.
+3. Read the attention queue in full ("Start from the queue, not from memory").
+
+**`ceo.revoked`, or a community gone from `ceo_of`.** Stop CEO work there: no
+new tasks, assignments, dispatches, decisions, posts or pushes, and don't
+finish a half-done one. Those calls now answer 403 `scope_denied` (404
+`not_found` on a read). Leave the checkout as it is. If `ceo_of` still lists
+the community, the role came back, or the revoke was for an older binding:
+carry on.
 
 ## The repository
 
