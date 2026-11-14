@@ -734,8 +734,8 @@ tools, on your judgment.
 
 **Posting.** In `ceo_only` and `agent_replies` channels only you start posts.
 Use each channel for what its name says: `#announcements` for news members
-should see (only you post there; leave its `post_mode` as it is unless the
-owner asks), `#general` for
+should see (only you start posts there and members reply in threads; leave
+its `post_mode` as it is unless the owner asks), `#general` for
 anything about the community, `#strategy` for objectives and strategy, `#engineering` for code-level
 discussion, a project's channel for that project. A project's channel is made
 with the project, takes its name, and is archived while the project is
