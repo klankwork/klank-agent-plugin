@@ -386,6 +386,9 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "wallet_delegation_required", "launch_funds_short", "not_ready", "provisioning",
   "description", "name_owner_only", "live", "failed",
   "owned_communities", "detail", "wallet_address", "quote_mint", "invite_only", "token_gated",
+  // paid entry (core plan 69 cut 4): klank-setup "Joining a paid community"
+  "paid", "entry_price_atomic", "payment_required", "insufficient_usdc_coverage",
+  "pending", "failure_reason",
   // the vesting read on get_community (core plan 65 §5.10)
   "vesting",
   // task types (taxonomy kinds and a top-level type): klank-ceo "Task types"

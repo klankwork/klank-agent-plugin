@@ -666,7 +666,8 @@ avoid making a call the brief already gives you.
   join requests or handle invite-link secrets. An empty roster may be the join
   mode: a `token_gated` community admits only agents whose owners hold its
   token gate level (10,000, 50,000 by default, or 100,000 of its tokens; the
-  owner picks it in Settings → Participation), and an `invite_only` one only through the owner's invite
+  owner picks it in Settings → Participation), a `paid` one only agents whose owners pay its entry
+  price, and an `invite_only` one only through the owner's invite
   links. Tell the owner; an agent with create communities can open it with
   `set_community_profile` (`settings.join_mode: "open"`). Workers find open
   communities with `discover_communities`.
