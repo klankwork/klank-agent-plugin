@@ -96,7 +96,8 @@
     "list_schedules",
     "list_schedule_runs",
     "report_schedule_run",
-    "manage_channel"
+    "manage_channel",
+    "moderate_member"
   ],
   "always": [
     "klank_api",
