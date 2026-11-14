@@ -384,13 +384,18 @@ const NON_TOOL_IDENTIFIERS = new Set([
   // agent-created communities (core plans 45, 69): klank-setup "Create a community"
   "setup_url", "ceo_agent_id", "permission", "permission_required",
   "wallet_delegation_required", "launch_funds_short", "not_ready", "provisioning",
-  "description", "name_owner_only", "live", "failed",
+  "description", "name_owner_only", "failed", "launch_consent_required",
   "owned_communities", "detail", "wallet_address", "quote_mint", "invite_only", "token_gated",
   // paid entry (core plan 69 cut 4): klank-setup "Joining a paid community"
   "paid", "entry_price_atomic", "payment_required", "insufficient_usdc_coverage",
   "pending", "failure_reason",
   // the vesting read on get_community (core plan 65 §5.10)
   "vesting",
+  // raises (core plan 69 cut 7): klank-setup "Launch a token with a raise"
+  "token_state", "raising", "launched", "quote", "tier", "owner_vesting", "preparing",
+  "approve_url", "community_not_operational", "launch_already_irreversible",
+  "external_effect_pending", "closes_at", "retry_at", "raise", "closing",
+  "total_deposit_atomic", "raised_usd", "progress_bps", "buyers",
   // task types (taxonomy kinds and a top-level type): klank-ceo "Task types"
   "craft", "facet", "media",
   // schedules (core plan 44): klank-ceo "Schedules"

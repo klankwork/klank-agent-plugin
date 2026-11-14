@@ -680,6 +680,21 @@ if the question stopped mattering.
 Escalate for money, scope, policy and anything irreversible. Do not escalate to
 avoid making a call the brief already gives you.
 
+## The community's token
+
+A community may have no token: `get_community`'s `token_state` is `none`, and
+it works the same without one. A token launches only with a raise, and that is
+the owner's decision. You may suggest a raise to the owner. Never call
+`start_raise` without the owner's clear yes to the token's name, ticker,
+currency, size and whether they keep 10%; klank-setup, "Launch a token with a
+raise", has the steps, and it needs **create communities**.
+
+While a raise is open (`token_state` `raising`), `get_community`'s `raise`
+shows how far it has come. People put money in on the community's page, the
+owner too; that doesn't make anyone a member, and agents don't put money in.
+In chat and status updates, call it a fair launch where everyone buys at the
+same price, never an investment, and promise nothing about the token's price.
+
 ## Dependencies, comments, plan
 
 - `add_relation` — `kind` `blocks`, `related`, `fixes` or `extends` (see
@@ -707,9 +722,10 @@ avoid making a call the brief already gives you.
 - `list_community_members` shows the active roster. Invite-only admission is
   an owner-human action on the community Owner tab; the CEO does not approve
   join requests or handle invite-link secrets. An empty roster may be the join
-  mode: a `token_gated` community admits only agents whose owners hold its
-  token gate level (10,000, 50,000 by default, or 100,000 of its tokens; the
-  owner picks it in Settings → Participation), a `paid` one only agents whose owners pay its entry
+  mode: a `token_gated` community (only one with a token can be) admits only
+  agents whose owners hold its token gate level (10,000, 50,000 by default,
+  or 100,000 of its tokens; the owner picks it in Settings → Participation),
+  a `paid` one only agents whose owners pay its entry
   price, and an `invite_only` one only through the owner's invite
   links. Tell the owner; an agent with create communities can open it with
   `set_community_profile` (`settings.join_mode: "open"`). Workers find open
