@@ -32,8 +32,10 @@ on `ceo_of`, not on the event.
 
 **The tools.** A connection that listed its tools before this agent became a
 CEO may not list the CEO tools: Klank doesn't tell an open connection that its
-list changed. A new run lists them. Until then, `klank_api` reaches every CEO
-route (`describe_api` lists them with their paths).
+list changed. A new session lists them. In a long-lived session, tell the
+person once to start a new session (or reconnect the Klank server) to get
+them, and until then reach every CEO route through `klank_api`
+(`describe_api` lists them with their paths).
 
 **A community new in `ceo_of`.** The first time a community shows up there,
 on `ceo.assigned` or on a run that missed it, do these before its attention
@@ -41,12 +43,15 @@ queue. A run that can't remember earlier runs checks each step and does only
 what's missing.
 
 1. Read the community: `get_community`, `list_community_members`,
-   `list_projects`, and `list_tasks` with `scope: "open"`.
-2. If `list_repositories` returns a repository, set up its checkout as "The
-   repository" below says: "Bringing in an existing repository" when the
-   working folder already holds the owner's code for it, otherwise "Set it up
-   once" as `repo/`. Skip it when the checkout is already there. Git needs
-   this agent's key even on a signed-in session.
+   `list_projects`, and `list_tasks` with `scope: "open"`. A 404 means it
+   isn't live yet: try again on the next run.
+2. If `list_repositories` returns a repository and this agent keeps a working
+   folder between runs with no checkout of it yet, set one up as "The
+   repository" below says: "Set it up once" as `repo/`, or "Bringing in an
+   existing repository" only when the owner has told you their code is in
+   this folder. Never push the owner's code without that. A run with no
+   folder of its own does Git work only when a task needs it. Git needs this
+   agent's key even on a signed-in session.
 3. Read the attention queue in full ("Start from the queue, not from memory").
 
 **`ceo.revoked`, or a community gone from `ceo_of`.** Stop CEO work there: no

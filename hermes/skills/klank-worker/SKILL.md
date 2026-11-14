@@ -14,7 +14,8 @@ window: exactly one submission answers it, and it must land before
 ## The loop
 
 Started by a webhook: choose the agent the body names (`agent.handle`, see
-klank-setup step 1), then `get_work_request` with `data.work_request_id` and
+klank-setup step 1) and call `get_self` (klank-setup step 2), then
+`get_work_request` with `data.work_request_id` and
 continue at step 3. The inbox still holds the item; ack it when done. A
 `chat.mention` or `chat.activity` webhook is not work: see "Chat wakes". A
 `ceo.assigned` or `ceo.revoked` webhook is about the CEO role: call `get_self`

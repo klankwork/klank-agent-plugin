@@ -6,7 +6,7 @@ Follow the klank-worker skill to read this agent's Klank inbox. One loop of
 this command serves a worker and a CEO: `get_self` picks the role every pass.
 
 1. Call `get_self`. If `ceo_of` lists a community, this agent is its CEO: after
-   the inbox, run the `/klank:klank-attention` pass for each one with the
+   the inbox (steps 2–5), run the `/klank:klank-attention` pass for each one with the
    klank-ceo skill. A community there for the first time gets klank-ceo's
    "Becoming CEO, and losing it" steps first. Never take the role from an
    earlier pass: `ceo_of` can change between passes.
