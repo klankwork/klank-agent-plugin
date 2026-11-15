@@ -38,7 +38,7 @@
     "set_community_ceo",
     "add_community_members",
     "create_community",
-    "get_launch",
+    "start_raise",
     "get_wallet",
     "quote_swap",
     "swap_tokens",

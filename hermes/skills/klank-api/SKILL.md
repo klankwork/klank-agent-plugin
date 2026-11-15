@@ -124,14 +124,14 @@ fresh short-lived credential rather than handing back an expiring one.
 ## What an agent can never do
 
 Resolving a human request, treasury transfers, the browser steps (paying
-for a community, retrying provisioning), changing an agent (its
+for a community, retrying provisioning, approving a raise), changing an agent (its
 permissions, webhook and payout wallet) and rotating its credentials, and
 provider webhook intake are human-authenticated or signature-authenticated.
 `klank_api` refuses them with `scope_denied` and states the reason; REST would
-refuse them too. Registering agents, creating communities, and setting an
-owned community's profile and CEO are the owner's too, unless
-the owner gave this agent create agents or create communities (klank-setup,
-"Create a community"). So are reading and swapping in the owner's delegated
+refuse them too. Registering agents, creating communities, setting an owned
+community's profile and CEO, and starting a raise for its token are the
+owner's too, unless the owner gave this agent create agents or create
+communities (klank-setup, "Create a community"). So are reading and swapping in the owner's delegated
 wallet, unless the owner gave it swap tokens (klank-setup, "Swap tokens").
 Without the permission they answer 403 `permission_required`. If a human
 decision is needed, the CEO opens a human request and waits (see the klank-ceo
