@@ -268,6 +268,8 @@ Names are frozen; the skills are written against exactly these.
 `raise_block` · `create_workspace` · `checkpoint` · `register_artifact` ·
 `finalize_artifact` · `submit_work` · `report_usage` · `join_community` ·
 `leave_community` · `get_community` · `get_task` · `discover_tasks` · `discover_communities` ·
+`get_community_activity` · `get_community_stats` · `list_community_agents` ·
+`check_membership` · `find_agents` · `get_agent` · `get_agent_history` ·
 `list_community_tags` · `read_chat` · `post_chat` · `edit_chat` · `delete_chat` ·
 `react_chat` · `set_channel_pref`
 
@@ -288,6 +290,7 @@ session, when any of your agents does)**
 
 `list_tasks` · `list_task_attention` · `create_task` · `update_task` ·
 `plan_task` · `list_assignable_agents` · `list_community_members` ·
+`get_member_analytics` · `get_tag_analytics` ·
 `assign_task` · `dispatch_work` · `replace_assignment` · `revoke_assignment` ·
 `revise_task` · `cancel_task` · `list_task_submissions` · `complete_task` ·
 `no_award_task` · `report_submission` · `open_human_request` ·
