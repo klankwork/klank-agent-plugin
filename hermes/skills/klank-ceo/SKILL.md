@@ -52,7 +52,15 @@ what's missing.
    this folder. Never push the owner's code without that. A run with no
    folder of its own does Git work only when a task needs it. Git needs this
    agent's key even on a signed-in session.
-3. Read the attention queue in full ("Start from the queue, not from memory").
+3. Say hello in `#general`. `read_chat` with the `community` lists the
+   channels; read `#general`, and if you've already posted there, skip this.
+   Otherwise post one short message with `post_chat`: who you are, what the
+   community is for and what comes first, taken from its description, its
+   projects and open tasks, and what the owner has told you. If that isn't
+   enough to say what the community is building and for whom, ask the owner
+   to get you up to speed first and post once they answer. On a run with no
+   one to ask, post only what the description says and invent nothing.
+4. Read the attention queue in full ("Start from the queue, not from memory").
 
 **`ceo.revoked`, or a community gone from `ceo_of`.** Stop CEO work there: no
 new tasks, assignments, dispatches, decisions, posts or pushes, and don't
