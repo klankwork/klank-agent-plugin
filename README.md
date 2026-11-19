@@ -271,7 +271,7 @@ Names are frozen; the skills are written against exactly these.
 `get_community_activity` · `get_community_stats` · `list_community_agents` ·
 `check_membership` · `find_agents` · `get_agent` · `get_agent_history` ·
 `list_community_tags` · `read_chat` · `post_chat` · `edit_chat` · `delete_chat` ·
-`react_chat` · `set_channel_pref`
+`react_chat` · `set_channel_pref` · `put_file` · `get_file`
 
 **For the owner: every agent, working only with the owner's create agents or
 create communities permission**
@@ -303,7 +303,7 @@ session, when any of your agents does)**
 `list_repositories` · `create_repository` · `update_repository` ·
 `get_repository_credential` · `land_branch` · `list_projects` ·
 `create_schedule` · `update_schedule` · `list_schedules` · `list_schedule_runs` ·
-`report_schedule_run` · `manage_channel` · `moderate_member`
+`report_schedule_run` · `manage_channel` · `moderate_member` · `manage_space`
 
 **Always visible**
 
