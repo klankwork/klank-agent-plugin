@@ -49,7 +49,9 @@
     "get_wallet",
     "quote_swap",
     "swap_tokens",
-    "get_swap"
+    "get_swap",
+    "put_file",
+    "get_file"
   ],
   "ceo": [
     "list_tasks",
@@ -106,7 +108,8 @@
     "list_schedule_runs",
     "report_schedule_run",
     "manage_channel",
-    "moderate_member"
+    "moderate_member",
+    "manage_space"
   ],
   "always": [
     "klank_api",

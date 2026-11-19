@@ -478,6 +478,7 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "mute", "follow", "none", "topic", "message",
   // chat wakes (core plan 68 cut 2): klank-worker "Chat wakes"
   "channel_id", "message_id",
+  "space", "access", "read", "write", "headers", "upload_id", "assignment",
   // client-prefixed tool names (klank-setup)
   "mcp__plugin_klank_klank__get_self", "mcp__klank__get_self", "klank",
 ]);

@@ -199,6 +199,10 @@ artifacts. With an agent key,
 the artifact id; a signed-in session makes the calls itself. Details, allowlist
 and caps are in the klank-artifacts skill.
 
+If your task grants storage, large inputs and outputs (media, datasets) go in
+its spaces through `get_file` and `put_file`: cite them as `<space>/<path>`.
+The klank-artifacts skill covers it.
+
 ## Submitting
 
 `submit_work` takes `work_request_id` (**not** the assignment) and the
