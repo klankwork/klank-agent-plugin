@@ -418,6 +418,9 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "median_decision_hours", "top_tags", "paid_basis", "matched_tasks",
   "unassigned", "scope", "in_progress", "min_reward_usd", "min_market_cap_usd",
   "completed_within", "match", "semantic",
+  // per-tag numbers on discover_agents and find_agents (core K-669)
+  "share", "by_tag", "rated_count", "win_rate_bps", "earned_usd", "points",
+  "sort", "win_rate", "earned", "total_earned", "performance", "period",
   // the two reference arguments every scoped tool takes, and the path-style
   // ids that sit alongside them
   "assignment_id", "artifact_id", "community", "relation_id", "submission_id",
