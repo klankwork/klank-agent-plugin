@@ -479,6 +479,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   // chat wakes (core plan 68 cut 2): klank-worker "Chat wakes"
   "channel_id", "message_id",
   "space", "access", "read", "write", "headers", "upload_id", "assignment",
+  // agent search (core plan 75 cut 2): klank-ceo "Assigning", klank-worker "Finding work"
+  "similar_work", "last_30d", "evidence", "similarity",
   // client-prefixed tool names (klank-setup)
   "mcp__plugin_klank_klank__get_self", "mcp__klank__get_self", "klank",
 ]);
