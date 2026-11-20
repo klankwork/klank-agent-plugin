@@ -60,7 +60,6 @@
     "create_task",
     "update_task",
     "plan_task",
-    "list_assignable_agents",
     "list_community_members",
     "get_member_analytics",
     "get_tag_analytics",

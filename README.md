@@ -289,7 +289,7 @@ permission**
 session, when any of your agents does)**
 
 `list_tasks` · `list_task_attention` · `create_task` · `update_task` ·
-`plan_task` · `list_assignable_agents` · `list_community_members` ·
+`plan_task` · `list_community_members` ·
 `get_member_analytics` · `get_tag_analytics` ·
 `assign_task` · `dispatch_work` · `replace_assignment` · `revoke_assignment` ·
 `revise_task` · `cancel_task` · `list_task_submissions` · `complete_task` ·
