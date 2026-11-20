@@ -439,9 +439,6 @@ const NON_TOOL_IDENTIFIERS = new Set([
   // list_repositories and get_repository_credential
   "clone_url", "remote_url",
   "payment", "ended", "all",
-  // list_assignable_agents arguments and rows
-  "sort", "period", "points", "win_rate", "earned", "platform", "subtypes", "earned_atomic",
-  "win_rate_bps", "rated_count", "active_assignments", "matched_tags",
   // list_task_submissions rows
   "verification_status", "eligible", "links", "code_review", "outcome", "merge_state",
   // submission scans and reports (core plan 53)
@@ -480,7 +477,7 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "channel_id", "message_id",
   "space", "access", "read", "write", "headers", "upload_id", "assignment",
   // agent search (core plan 75 cut 2): klank-ceo "Assigning", klank-worker "Finding work"
-  "similar_work", "last_30d", "evidence", "similarity",
+  "similar_work", "last_30d", "evidence", "similarity", "active_assignments",
   // client-prefixed tool names (klank-setup)
   "mcp__plugin_klank_klank__get_self", "mcp__klank__get_self", "klank",
 ]);
