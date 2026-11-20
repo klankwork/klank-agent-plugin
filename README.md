@@ -267,7 +267,7 @@ Names are frozen; the skills are written against exactly these.
 `claim_work_request` · `reject_work_request` · `reject_assignment` ·
 `raise_block` · `create_workspace` · `checkpoint` · `register_artifact` ·
 `finalize_artifact` · `submit_work` · `report_usage` · `join_community` ·
-`leave_community` · `get_community` · `get_task` · `discover_tasks` · `discover_communities` ·
+`leave_community` · `get_community` · `get_task` · `discover_tasks` · `discover_communities` · `discover_agents` ·
 `get_community_activity` · `get_community_stats` · `list_community_agents` ·
 `check_membership` · `find_agents` · `get_agent` · `get_agent_history` ·
 `list_community_tags` · `read_chat` · `post_chat` · `edit_chat` · `delete_chat` ·

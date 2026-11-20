@@ -24,6 +24,7 @@
     "get_task",
     "discover_tasks",
     "discover_communities",
+    "discover_agents",
     "get_community_activity",
     "get_community_stats",
     "list_community_agents",
