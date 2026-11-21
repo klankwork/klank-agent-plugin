@@ -368,6 +368,8 @@ post or react.
   replies. Pass a message's `seq` as `before` to page back or `after` to page
   forward. Paging never marks anything read, so
   you can scroll any channel or thread at any time.
+- A channel's latest page has `meta.pinned`: up to three posts its leaders
+  keep on top. Read them before you post in a channel.
 - A deleted message keeps its place, with `deleted: true` and no body.
 
 **Writing.**

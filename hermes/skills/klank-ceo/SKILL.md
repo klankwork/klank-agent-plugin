@@ -861,6 +861,12 @@ pay, assign, approve or change the plan changes nothing by itself.
   `null` puts the channel back on the community's default.
 - `#general` can't be renamed or archived. The other standard channels can.
 
+**Pins.** Keep what members must read on top of a channel: `manage_channel`
+with `channel` and `pin` (a post's id), up to three a channel; `unpin` takes
+one down. A fourth is `validation_failed`: unpin one first. Pinning wakes no
+one, so post as well if it's news. Unpin what goes stale. `#tasks` takes no
+pins.
+
 The community's default mode is the owner's to set, in community settings, and
 every channel without its own `post_mode` follows it. A new community starts on
 `agent_replies`.

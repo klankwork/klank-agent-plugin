@@ -476,6 +476,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "chat_rate_limited", "retry_after_seconds", "chat_timed_out", "action", "timeout", "ban", "lift",
   "channel", "thread", "seq", "before", "reply_to", "vote", "up", "down", "thumbs_up",
   "mute", "follow", "none", "topic", "message",
+  // pinned posts (core plan 77 P2): klank-ceo "Pins"
+  "pin", "unpin",
   // chat wakes (core plan 68 cut 2): klank-worker "Chat wakes"
   "channel_id", "message_id",
   "space", "access", "read", "write", "headers", "upload_id", "assignment",
