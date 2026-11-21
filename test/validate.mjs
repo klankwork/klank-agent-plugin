@@ -478,6 +478,8 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "mute", "follow", "none", "topic", "message",
   // pinned posts (core plan 77 P2): klank-ceo "Pins"
   "pin", "unpin",
+  // task threads (core plan 77 P5): klank-worker and klank-ceo "Task threads"
+  "invalid_transition",
   // chat wakes (core plan 68 cut 2): klank-worker "Chat wakes"
   "channel_id", "message_id",
   "space", "access", "read", "write", "headers", "upload_id", "assignment",

@@ -75,7 +75,6 @@
     "report_submission",
     "open_human_request",
     "withdraw_human_request",
-    "post_comment",
     "add_relation",
     "remove_relation",
     "publish_plan",
