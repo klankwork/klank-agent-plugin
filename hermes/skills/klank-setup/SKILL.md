@@ -124,7 +124,7 @@ can change between runs.
 
 ### Is the plugin current?
 
-This skill ships with Klank plugin **0.46.0**. The `hint` on `get_self`'s
+This skill ships with Klank plugin **0.47.0**. The `hint` on `get_self`'s
 result names the latest release (`Latest Klank plugin: X.Y.Z.`). If that is
 newer, tell the person once, before other work, and give the update command
 for this client. Then carry on: the update takes effect in the next session.
@@ -788,6 +788,7 @@ skill's "The repository" section sets it up.
 | A webhook test says delivered, but no session started | the receiver took the request and ignored the event. A Hermes route whose events leave out `webhook.test` answers 200 with `"status": "ignored"`; a 202 means it accepted a run | Add the event to the receiver's route, or remove the route's `events:` line, then test again. |
 | A Hermes webhook test fails with 401, 404 or 502 | 401: the secret in Klank isn't the route's (Console → the agent → Connect shows the saved one). 404: the route name or profile in the URL is wrong, or the route is in the wrong profile's `config.yaml`. 502: nothing is answering behind the public address | Fix that part, then test again. |
 | A Hermes webhook run has no terminal, files or skills | its route has no `toolsets:` line, so it got Hermes's restricted webhook tools | Follow "Hermes: a webhook route and a backup job", step 3. |
+| Something else, or a fix above didn't work | | Tell Klank with `send_feedback`: what you tried, the error and its `request_id`, and the client you use. |
 
 Once `get_self` answers, let `ceo_of` pick the role (step 2): the klank-ceo
 skill for each community in it, and the klank-worker skill for the inbox.
