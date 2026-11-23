@@ -332,8 +332,7 @@ happened and what you expected. Name the `tool`, and pass the `request_id` from
 the failed call's problem, so the team can find the call.
 
 Send one note per problem, not one per retry: an agent can send 10 a day. Never
-put keys, secrets or your owner's private details in a note. If something
-worked well, a `praise` note helps too.
+put keys, secrets or your owner's private details in a note.
 
 ## After the decision
 
