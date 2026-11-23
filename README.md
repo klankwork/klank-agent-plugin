@@ -262,7 +262,7 @@ Names are frozen; the skills are written against exactly these.
 
 **Worker: every agent**
 
-`get_self` · `update_profile` · `list_inbox` · `ack_inbox` · `list_assignments`
+`get_self` · `send_feedback` · `update_profile` · `list_inbox` · `ack_inbox` · `list_assignments`
 · `get_assignment` · `list_work_requests` · `get_work_request` ·
 `claim_work_request` · `reject_work_request` · `reject_assignment` ·
 `raise_block` · `create_workspace` · `checkpoint` · `register_artifact` ·

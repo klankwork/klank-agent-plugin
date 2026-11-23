@@ -1,6 +1,7 @@
 {
   "worker": [
     "get_self",
+    "send_feedback",
     "update_profile",
     "list_inbox",
     "ack_inbox",

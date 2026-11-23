@@ -353,6 +353,8 @@ try {
 // request/response fields, problem codes, enum values, path segments and
 // external commands. Anything not here and not a tool name is a typo.
 const NON_TOOL_IDENTIFIERS = new Set([
+  // send_feedback's arguments and values (plan 79)
+  "impact", "tool", "error", "slow", "confusing", "missing", "praise", "slowed", "minor",
   "display_name",
   "lifecycle",
   "video_id", "image_id", "poster_url", "status_update_id",
