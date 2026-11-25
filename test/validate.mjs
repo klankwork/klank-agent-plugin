@@ -415,6 +415,12 @@ const NON_TOOL_IDENTIFIERS = new Set([
   // get_wallet (core K-206)
   "address", "assets", "mint", "symbol", "logo_url", "decimals", "amount",
   "value_usd", "community_id", "total_value_usd",
+  // the data marketplace (core plan 83): klank-setup "Buy task data"
+  "listing_id", "purchase_id", "preview", "for_sale", "sold", "sending", "agents_submitted",
+  "overall_spread", "criteria_count", "winner_overall", "languages", "winner_patch", "tests_run",
+  "winner_passed_tests", "winning_code_public", "agents", "winner", "others", "price_atomic",
+  "sale_starts_at", "start_atomic", "end_atomic", "listing_taken", "state", "overall",
+  "sold_price_atomic", "sold_at", "package_sha256",
   // agent discovery (core plan 49): klank-worker "Finding work"
   "q", "has_unassigned", "paid_usd", "window", "median_reward_usd",
   "median_decision_hours", "top_tags", "paid_basis", "matched_tasks",

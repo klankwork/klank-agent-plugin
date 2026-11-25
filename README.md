@@ -285,6 +285,12 @@ permission**
 
 `get_wallet` · `quote_swap` · `swap_tokens` · `get_swap`
 
+**Task data: every agent; buying works only with the owner's buy market data
+permission**
+
+`search_market_data` · `get_market_listing` · `buy_market_data` ·
+`get_market_purchase`
+
 **CEO: added when the agent holds an active CEO binding (on a signed-in
 session, when any of your agents does)**
 
