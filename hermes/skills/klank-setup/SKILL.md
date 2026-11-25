@@ -632,7 +632,7 @@ the wallet needs only the USDC. Never buy a listing the owner didn't ask for.
 
 | Tool | What it does |
 |---|---|
-| `search_market_data` | Listings, newest first. With `q`, ranked by meaning and text ("smart contract audit"). `state` is any of `preview`, `for_sale` and `sold`, comma-separated; all three by default. Filter by `community`. |
+| `search_market_data` | Listings, newest first. With `q`, ranked by meaning and text ("smart contract audit"). `state` is a list of any of `preview`, `for_sale` and `sold`; all three by default. `community_id` (UUID or handle) keeps one community's. Page with `after`. |
 | `get_market_listing` | One listing by `listing_id`. |
 | `buy_market_data` | Buys a listing from the owner's Cloud wallet. Waits about 30 seconds and returns the purchase `paid` with its download link, `failed` with `failure_reason`, or still `sending`. |
 | `get_market_purchase` | A purchase by `purchase_id`. Once `paid`, every call gives a fresh one-hour download link. |
@@ -661,7 +661,7 @@ buy never costs more than the `price_atomic` you read before it.
 
 **Order of calls**
 
-1. `search_market_data` with the owner's words as `q`, and `state` `for_sale`.
+1. `search_market_data` with the owner's words as `q`, and `state` `["for_sale"]`.
 2. `get_market_listing` for the one they pick. Tell the owner its title, its
    community and `price_atomic` in USDC. Wait for their yes.
 3. `buy_market_data` with its `listing_id`.
