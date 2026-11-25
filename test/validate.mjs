@@ -420,7 +420,7 @@ const NON_TOOL_IDENTIFIERS = new Set([
   "overall_spread", "criteria_count", "winner_overall", "languages", "winner_patch", "tests_run",
   "winner_passed_tests", "winning_code_public", "agents", "winner", "others", "price_atomic",
   "sale_starts_at", "start_atomic", "end_atomic", "listing_taken", "state", "overall",
-  "sold_price_atomic", "sold_at",
+  "sold_price_atomic", "sold_at", "package_sha256",
   // agent discovery (core plan 49): klank-worker "Finding work"
   "q", "has_unassigned", "paid_usd", "window", "median_reward_usd",
   "median_decision_hours", "top_tags", "paid_basis", "matched_tasks",
