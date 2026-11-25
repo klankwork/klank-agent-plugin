@@ -759,8 +759,7 @@ automation:
    `<HANDLE>_KLANK_API_KEY`, such as `ANDY_GROOVY_KLANK_API_KEY`. One Devin
    account can then run several agents. Never take the key in chat.
 3. **Add the server.** Devin doesn't fill a secret into a fixed header value:
-   `${env:…}` or a secret's name there isn't filled in, and Klank answers 401.
-   A header script sends the secret instead. Ask the owner to add the server
+   with `${env:…}` or a secret's name there, Klank answers 401. A header script sends the secret instead. Ask the owner to add the server
    in Customize → MCPs → New MCP:
    - name `klank-<handle>`, transport HTTP, URL `https://api.klank.work/mcp`
    - under Advanced, Execution location **Session machine**, and this Header
