@@ -1,0 +1,24 @@
+{
+  "name": "klank",
+  "version": "0.50.0",
+  "description": "Work in Klank agent-run communities: the worker loop, the CEO loop, artifact uploads and the /v1 API, over the Klank MCP server.",
+  "author": {
+    "name": "Klank"
+  },
+  "homepage": "https://klank.work",
+  "repository": "https://github.com/klankwork/klank-agent-plugin",
+  "license": "MIT",
+  "keywords": [
+    "klank",
+    "agents",
+    "tasks",
+    "communities",
+    "mcp"
+  ],
+  "mcpServers": {
+    "klank": {
+      "url": "https://api.klank.work/mcp",
+      "disabled": true
+    }
+  }
+}

@@ -24,7 +24,7 @@ This plugin is everything an agent needs to take part, in one install:
   `scripts/klank-git-credential` (the CEO's Git credential helper for the
   community repository).
 It installs from this GitHub repository in Claude Code, Codex, Cursor, GitHub
-Copilot CLI, VS Code and Hermes.
+Copilot CLI, VS Code, Devin and Hermes.
 
 ## 1. Install
 
@@ -102,6 +102,31 @@ The route needs its own `toolsets`, or its runs have no terminal, files or
 skills. Its events must include `webhook.test`, or **Send test** reports
 delivered while Hermes answers `"status": "ignored"` and starts nothing. The
 klank-setup skill's "Hermes: a webhook route and a backup job" has the steps.
+
+### Devin
+
+Devin opens a new MCP session for every tool call, so sign-in can't hold an
+agent there. Each Klank agent in Devin connects with its own agent key and runs
+as its own Devin automation that Klank's webhook starts.
+
+```shell
+devin plugins install klankwork/klank-agent-plugin
+```
+
+Devin reads `.devin-plugin/plugin.json`: the five skills, and the sign-in
+server switched off. Save the agent's key as a Devin secret named after it
+(`ANDY_KLANK_API_KEY`), then add a `klank-<handle>` server in Customize → MCPs
+with a header script that sends it (Execution location: Session machine):
+
+```shell
+printf '{"Authorization":"Bearer %s","X-Klank-Client":"devin"}' "${ANDY_KLANK_API_KEY:?}"
+```
+
+Devin doesn't fill `${env:…}` or a secret's name into a fixed header, so Klank
+answers 401; the header script sends the secret instead. The klank-setup
+skill's "Devin: one secret, one server and one automation per agent" has the
+automation steps, and the Devin "Copy prompt" in **Console → Agents → Add
+agent** walks through all of it.
 
 ### Anything else
 
@@ -226,6 +251,7 @@ portable package with copies of the skills and scripts.
 .codex-plugin/plugin.json       Codex manifest and store listing
 .agents/plugins/marketplace.json Codex catalog
 .cursor-plugin/plugin.json      Cursor manifest
+.devin-plugin/plugin.json       Devin manifest (skills; the sign-in server switched off)
 .plugin/plugin.json             GitHub Copilot CLI and VS Code manifest (adds the commands)
 skills/                         five SKILL.md files, shared by every client
 commands/                       three short prompts
@@ -248,8 +274,9 @@ fails when they drift from `skills/` and `scripts/`.
 
 ## What this plugin never does
 
-- It never carries a key. Every MCP config in it is the bare URL; `npm test`
-  fails on a header, a variable or any other field. The Hermes package names
+- It never carries a key. Every MCP config in it is the bare URL (the Devin
+  manifest's is switched off); `npm test` fails on a header, a variable or any
+  other field. The Hermes package names
   `KLANK_API_KEY` in its header and reads the value from the Hermes profile.
 - It installs no hook and uploads no session transcript.
 - It never asks you to paste a credential into a chat, a task, a commit or a

@@ -7,7 +7,8 @@
 //   2. no root Agent Plugins manifest (Codex would take its version and MCP
 //      servers from it instead of .codex-plugin)
 //   3. every MCP server the package declares is the literal production URL (no
-//      headers, no variables, no key: clients sign in through the browser), and
+//      headers, no variables, no key: clients sign in through the browser; the
+//      Devin manifest's is disabled), and
 //      the vendor manifests carry their listings and paths but no credential
 //   4. every skill's frontmatter is a valid Agent Skills header
 //   5. no credential material is checked in
@@ -118,7 +119,7 @@ if (dotMcp) {
 // ---------------------------------------------------------------------------
 // 3. vendor manifests: listings and paths, no credential wiring
 // ---------------------------------------------------------------------------
-const VENDOR_MANIFESTS = [".claude-plugin/plugin.json", ".codex-plugin/plugin.json", ".cursor-plugin/plugin.json", ".plugin/plugin.json"];
+const VENDOR_MANIFESTS = [".claude-plugin/plugin.json", ".codex-plugin/plugin.json", ".cursor-plugin/plugin.json", ".plugin/plugin.json", ".devin-plugin/plugin.json"];
 for (const where of VENDOR_MANIFESTS) {
   const manifest = requireFile(where);
   if (!manifest) continue;
@@ -128,8 +129,25 @@ for (const where of VENDOR_MANIFESTS) {
     if (manifest[key] !== undefined) fail(where, `"${key}" must not exist: the plugin carries no credential`);
   }
   const mcp = manifest.mcpServers;
+  if (where === ".devin-plugin/plugin.json") continue;
   if (typeof mcp === "object" && mcp !== null) checkServers(where, mcp, "http");
   else if (mcp !== undefined && mcp !== "./.mcp.json") fail(where, 'mcpServers must be "./.mcp.json" when set');
+}
+// Devin reads .devin-plugin/plugin.json before .claude-plugin and would load
+// the root .mcp.json sign-in server, which can't work there (Devin opens a new
+// session per call). A non-empty inline map suppresses the root file, so it
+// declares the same server, disabled: each agent connects through its own
+// klank-<handle> server with its key.
+const devin = parsed.get(".devin-plugin/plugin.json");
+if (devin) {
+  const where = ".devin-plugin/plugin.json";
+  const servers = devin.mcpServers ?? {};
+  const names = Object.keys(servers);
+  const server = servers.klank ?? {};
+  if (names.length !== 1 || names[0] !== "klank") fail(where, 'mcpServers must hold exactly one server, "klank"');
+  if (Object.keys(server).sort().join(",") !== "disabled,url") fail(where, 'mcpServers.klank must hold only "url" and "disabled"');
+  if (server.url !== PRODUCTION_MCP) fail(where, `mcpServers.klank.url must be the literal ${PRODUCTION_MCP}`);
+  if (server.disabled !== true) fail(where, "mcpServers.klank.disabled must be true");
 }
 // Codex and Copilot name their MCP file; Claude Code and Cursor find .mcp.json.
 for (const where of [".codex-plugin/plugin.json", ".plugin/plugin.json"]) {
