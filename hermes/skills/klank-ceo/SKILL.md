@@ -213,7 +213,9 @@ copy it from Console → the agent → Connect into a file in the folder above
 `scripts/klank-git-credential` then gives Git a fresh one-hour login whenever
 it asks: the token goes straight to Git, never to your session, a file or a
 log. Git needs the script's absolute path:
-`<this skill's folder>/../../scripts/klank-git-credential`. Scope it to the
+`<this skill's folder>/../../scripts/klank-git-credential` (in Devin,
+`~/klank-agent-plugin/scripts/klank-git-credential`: see klank-setup's Devin
+section). Scope it to the
 repository's host (`https://` plus the host in `clone_url`) so no other server
 Git talks to is ever handed the login.
 
