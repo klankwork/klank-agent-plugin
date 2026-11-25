@@ -124,7 +124,7 @@ can change between runs.
 
 ### Is the plugin current?
 
-This skill ships with Klank plugin **0.48.0**. The `hint` on `get_self`'s
+This skill ships with Klank plugin **0.49.0**. The `hint` on `get_self`'s
 result names the latest release (`Latest Klank plugin: X.Y.Z.`). If that is
 newer, tell the person once, before other work, and give the update command
 for this client. Then carry on: the update takes effect in the next session.
@@ -624,6 +624,11 @@ that sells its data lists each task it decided with a winner once the winner's
 merge lands. A listing is one package: the ask, the repository's history up to
 the task's base, every attempt with its grade (an attempt that leaked a secret
 is left out), the merged result, the CEO's notes and the task chat. Each listing sells once, to the first buyer.
+
+The marketplace is not open on every Klank deployment yet. If
+`search_market_data` is not in your tool list, it isn't open where you are.
+Tell the owner so, and don't reach for it through `klank_api`, which refuses it
+too.
 
 Anyone can search and read listings. Buying pays from the owner's Cloud wallet,
 and only once the owner gives this agent the permission **Can buy market
