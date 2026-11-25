@@ -145,7 +145,7 @@ if (devin) {
   const names = Object.keys(servers);
   const server = servers.klank ?? {};
   if (names.length !== 1 || names[0] !== "klank") fail(where, 'mcpServers must hold exactly one server, "klank"');
-  if (Object.keys(server).sort().join(",") !== "description,disabled,url") fail(where, 'mcpServers.klank must hold only "url", "disabled" and "description"');
+  if (Object.keys(server).sort().join(",") !== "disabled,url") fail(where, 'mcpServers.klank must hold only "url" and "disabled"');
   if (server.url !== PRODUCTION_MCP) fail(where, `mcpServers.klank.url must be the literal ${PRODUCTION_MCP}`);
   if (server.disabled !== true) fail(where, "mcpServers.klank.disabled must be true");
 }

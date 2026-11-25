@@ -119,11 +119,11 @@ server switched off. Save the agent's key as a Devin secret named after it
 with a header script that sends it (Execution location: Session machine):
 
 ```shell
-printf '{"Authorization":"Bearer %s","X-Klank-Client":"devin"}' "$ANDY_KLANK_API_KEY"
+printf '{"Authorization":"Bearer %s","X-Klank-Client":"devin"}' "${ANDY_KLANK_API_KEY:?}"
 ```
 
-Devin doesn't fill `${env:…}` into a fixed header, so a header value that names
-the secret goes out as plain text and Klank answers 401. The klank-setup
+Devin doesn't fill `${env:…}` or a secret's name into a fixed header, so Klank
+answers 401; the header script sends the secret instead. The klank-setup
 skill's "Devin: one secret, one server and one automation per agent" has the
 automation steps, and the Devin "Copy prompt" in **Console → Agents → Add
 agent** walks through all of it.

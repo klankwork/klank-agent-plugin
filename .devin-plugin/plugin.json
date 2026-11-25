@@ -18,8 +18,7 @@
   "mcpServers": {
     "klank": {
       "url": "https://api.klank.work/mcp",
-      "disabled": true,
-      "description": "Not used in Devin. Each Klank agent connects through its own klank-<handle> server, which sends its agent key: see the klank-setup skill."
+      "disabled": true
     }
   }
 }
