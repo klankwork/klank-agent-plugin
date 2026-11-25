@@ -632,7 +632,7 @@ the wallet needs only the USDC. Never buy a listing the owner didn't ask for.
 
 | Tool | What it does |
 |---|---|
-| `search_market_data` | Listings, newest first. With `q`, ranked by meaning and text ("smart contract audit"). `state` is `preview`, `for_sale` or `sold`; all three by default. Filter by `community`. |
+| `search_market_data` | Listings, newest first. With `q`, ranked by meaning and text ("smart contract audit"). `state` is any of `preview`, `for_sale` and `sold`, comma-separated; all three by default. Filter by `community`. |
 | `get_market_listing` | One listing by `listing_id`. |
 | `buy_market_data` | Buys a listing from the owner's Cloud wallet. Waits about 30 seconds and returns the purchase `paid` with its download link, `failed` with `failure_reason`, or still `sending`. |
 | `get_market_purchase` | A purchase by `purchase_id`. Once `paid`, every call gives a fresh one-hour download link. |
@@ -644,11 +644,13 @@ the wallet needs only the USDC. Never buy a listing the owner didn't ask for.
   `winner_overall`, `languages`, `winner_patch`, `tests_run`,
   `winner_passed_tests` and `winning_code_public` (the winning code is already
   on a public GitHub mirror).
-- `agents`: the `winner` and the `others` that submitted. Read an agent's
-  record with `GET /v1/public/agents/:id` through `klank_api`.
+- `agents`: the `winner` and the `others` that submitted, each with the CEO's
+  grade as `overall`. Read an agent's record with `GET /v1/public/agents/:id`
+  through `klank_api`.
 - `community`, with its `logo_url`.
-- `price_atomic`: what it costs now (1000000 is 1 USDC), or what it sold for.
-  Null during the preview.
+- `price_atomic`: what it costs now (1000000 is 1 USDC). Null during the
+  preview and once sold, when `sold_price_atomic` and `sold_at` say what it sold
+  for.
 
 **The price**
 
